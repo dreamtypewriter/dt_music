@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:v-bind="http://www.w3.org/1999/xhtml"
+      xmlns:v-hind="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <!-- Bootstrap core CSS -->
+
+</head>
+<body>
+<div th:fragment="topBar">
+    <div class="navbar navbar-light bg-light shadow-sm">
+        <div class="container d-flex justify-content-between">
+            <a th:href="@{/index}" class="navbar-brand">
+                <img th:src="@{/assets/img/musiclogo.png}" alt="图标" height="46px" width="170px">
+            </a>
+            <a class="nav-item nav-link d-flex color-gray" data-toggle="collapse"
+               href="#exploreMusicMenu"><b>发现音乐</b></a>
+            <a class="nav-item nav-link d-flex color-gray" th:href="@{/myMusic/mySongList}"><b>我的音乐</b></a>
+            <a class="nav-item nav-link d-flex color-gray" th:href="@{/friend}"><b>朋友</b></a>
+            <form class="form-inline" method="post" action="/search/list">
+                <div class="input-group">
+                    <input required type="text" class="form-control" placeholder="单曲/歌单/歌手..." name="searchKeyword">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-secondary" type="submit">
+                            <span class="glyphicon glyphicon-search"></span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+            <div class="dropdown show">
+                <a class="dropdown-toggle color-gray" href="#" id="userDownMenu" data-toggle="dropdown">
+                    <img th:unless="${session.loginUser}" alt="图标" width="30px" height="30px"
+                         th:src="@{/assets/img/favicon.ico}" class="rounded-circle">
+                    <span th:if="${session.loginUser}">
+                        <img alt="图标" width="30px" height="30px" class="rounded-circle"
+                             th:src="${session.loginUser.userAvatar}">
+                    </span>
+                </a>
+
+                <div class="dropdown-menu" aria-labelledby="userDownMenu">
+                    <a class="dropdown-item" th:href="@{/user/login}" th:unless="${session.loginUser}">登录</a>
+                    <!--<a class="dropdown-item" th:href="@{/user/home/0}" th:if="${session.loginUser}">主页</a>-->
+                    <a class="dropdown-item" th:href="@{'/user/home/'+${session.loginUser.userId}}" th:if="${session.loginUser}">主页</a>
+                    <a class="dropdown-item" th:href="@{/user/message}" th:if="${session.loginUser}">消息</a>
+                    <a class="dropdown-item" th:href="@{/user/userInfo}" th:if="${session.loginUser}">设置</a>
+                    <a class="dropdown-item" th:href="@{/user/logout}" th:if="${session.loginUser}">退出</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="collapse shadow-lg" id="exploreMusicMenu">
+        <div class="row">
+            <div class="col-sm-2"></div>
+            <div class="col-sm-4 navbar justify-content-center">
+                <a class="nav-item nav-link color-gray" th:href="@{/index}">推荐</a>
+                <a class="nav-item nav-link color-gray" th:href="@{/explore_topList}">排行榜</a>
+                <a class="nav-item nav-link color-gray" th:href="@{/index/songLists}">歌单</a>
+                <a class="nav-item nav-link color-gray" th:href="@{/index/singerLists}">歌手</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

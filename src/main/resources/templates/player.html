@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-cn" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>DT云音乐-给您最差的音乐体验</title>
+    <link rel="shortcut icon" th:href="@{/assets/img/favicon.ico}"/>
+
+    <link th:href="@{/assets/dist/css/bootstrap.css}" rel="stylesheet">
+    <link th:href="@{/assets/css/main.css}" rel="stylesheet">
+    <link th:href="@{/assets/css/zplayer.css}" rel="stylesheet">
+</head>
+<body>
+<!--主容器-->
+<div id="musicPlayerDiv" class="w-100 h-100  m-auto text-center">
+    <div id="playerDiv" class="container"></div>
+</div>
+
+<!--依赖的js-->
+<script th:src="@{/assets/js/jquery-3.5.1.js}"></script>
+<script th:src="@{/assets/dist/js/bootstrap.js}"></script>
+<script th:src="@{/assets/js/vue.js}"></script>
+<script th:src="@{/assets/js/zplayer.js}"></script>
+
+<!--自定义脚本-->
+<script th:inline="javascript">
+    let musicPlayerDiv = new Vue({
+        el: '#musicPlayerDiv',
+        data: {
+            musics: [],
+            player: {},
+            songIds: [],
+        },
+        methods: {
+            async addNewSong(songId) {
+                let songIndex = this.songIds.indexOf(songId);
+                if (songIndex > -1) {
+                    this.player.playSwitch(songIndex);
+                } else {
+                    let url = '/playMusic/getSong';
+                    let params = {songId: songId};
+                    let songDto = await new Promise(function (resolve, reject) {
+                        $.get(url, params).done(function (data) {
+                            resolve(data);
+                        }).fail(function (data) {
+                            reject(data);
+                        }).then(data => {
+                            return data;
+                        })
+                    });
+                    this.songIds.push(songDto.songId);
+                    let max = this.player.add(this.convertDtoToMusic(songDto));
+                    this.player.playSwitch(max - 1);
+                }
+            },
+            async addNewSongList(songListId) {
+                let url = '/playMusic/getSongs';
+                let params = {songListId: songListId};
+                let songDtos = await new Promise(function (resolve, reject) {
+                    $.get(url, params).done(function (data) {
+                        resolve(data);
+                    }).fail(function (data) {
+                        reject(data);
+                    }).then(data => {
+                        return data;
+                    })
+                });
+                this.playNewSongDtos(songDtos);
+            },
+            async addNewAlbum(songListId) {
+                console.log(this.songIds);
+                let _this = this;
+                let url = '/playMusic/getSongs';
+                let params = {albumId: songListId};
+                let songDtos = await new Promise(function (resolve, reject) {
+                    $.get(url, params).done(function (data) {
+                        resolve(data);
+                    }).fail(function (data) {
+                        reject(data);
+                    }).then(data => {
+                        return data;
+                    })
+                });
+                this.playNewSongDtos(songDtos);
+            },
+            async addNewSinger(songListId) {
+                let url = '/playMusic/getSongs';
+                let params = {singerId: songListId};
+                let songDtos = await new Promise(function (resolve, reject) {
+                    $.get(url, params).done(function (data) {
+                        resolve(data);
+                    }).fail(function (data) {
+                        reject(data);
+                    }).then(data => {
+                        return data;
+                    })
+                });
+                this.playNewSongDtos(songDtos);
+            },
+            playNewSongDtos(songDtos) {
+                let _this = this;
+                _this.songIds.forEach(function (songId, index) {
+                    if (index > 0) {
+                        _this.player.remove(1);
+                    }
+                });
+                _this.songIds = [];
+                for (let songDto of songDtos) {
+                    _this.player.add(_this.convertDtoToMusic(songDto));
+                    _this.songIds.push(songDto.songId);
+                }
+                _this.player.remove(0);
+                _this.player.playSwitch(0);
+            },
+            createNewList(musics) {
+                this.player = new ZPlayer({
+                    // 绑定div
+                    element: document.getElementById("playerDiv"),
+                    /*是否开启自动播放,默认false*/
+                    autoPlay: true,
+                    /*是否开启歌词功能 ，默认false（为true时musics集合中需要传入lrc字段。）*/
+                    lrcStart: true,
+                    /*开启歌词功能后是否立即展示歌词内容 ，默认false*/
+                    showLrc: true,
+                    /*是否固定在底部，默认false*/
+                    fixed: false,
+                    /*播放列表默认折叠，默认false*/
+                    listFolded: false,
+                    /*播放列表最大高度，默认240*/
+                    listMaxHeight: 500,
+                    musics: musics
+                });
+            },
+            convertDtoToMusic(songDto) {
+                return {
+                    title: songDto.songName,
+                    author: songDto.singer.singerName,
+                    url: songDto.songPath,
+                    pic: songDto.songImgPath,
+                    lrc: '',
+                };
+            },
+        },
+        created: function () {
+            let _this = this;
+            let musics = [];
+            let songDto = [[${newSong}]];
+            let songs = [[${newSongList}]];
+            if (songDto) {
+                musics.push(_this.convertDtoToMusic(songDto));
+                _this.songIds.push(songDto.songId);
+                localStorage.removeItem('newSongId');
+            }
+            if (songs && songs.length > 0) {
+                songs.forEach(function (song) {
+                    musics.push(_this.convertDtoToMusic(song));
+                    _this.songIds.push(song.songId);
+                });
+                localStorage.removeItem('newSongListId');
+            }
+            this.musics = musics;
+            localStorage.removeItem('newPlayer');
+        },
+        mounted() {
+            this.createNewList(this.musics);
+        }
+    });
+
+    // 关闭页面时清空isPlaying标志位
+    window.addEventListener('beforeunload', () => {
+        localStorage.removeItem('isPlaying');
+    })
+
+    // 监听localStorage值的变化,操作播放列表
+    window.addEventListener('storage', () => {
+        if (localStorage.getItem('newPlayer')) {
+            return false;
+        }
+        let newSongId = localStorage.getItem('newSongId');
+        let newSongListId = localStorage.getItem('newSongListId');
+        let newAlbumId = localStorage.getItem('newAlbumId');
+        let newSingerId = localStorage.getItem('newSingerId');
+        if (newSongId != null && !isNaN(newSongId)) {
+            musicPlayerDiv.addNewSong(parseInt(newSongId));
+            localStorage.removeItem('newSongId');
+        }
+        if (newSongListId != null && !isNaN(newSongListId)) {
+            musicPlayerDiv.addNewSongList(parseInt(newSongListId));
+            localStorage.removeItem('newSongListId');
+        }
+        if (newAlbumId != null && !isNaN(newAlbumId)) {
+            musicPlayerDiv.addNewAlbum(parseInt(newAlbumId));
+            localStorage.removeItem('newAlbumId');
+        }
+        if (newSingerId != null && !isNaN(newSingerId)) {
+            musicPlayerDiv.addNewSinger(parseInt(newSingerId));
+            localStorage.removeItem('newSingerId');
+        }
+    })
+
+    $(function () {
+        localStorage.setItem('isPlaying', 'true');
+    })
+</script>
+</body>
+</html>

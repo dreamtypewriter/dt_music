@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.dtmusic.api.mapper.CommentMapper">
+
+    <resultMap id="BaseResultMap" type="cn.dtmusic.api.entity.Comment">
+        <id column="comment_id" jdbcType="INTEGER" property="commentId"/>
+        <result column="resource_type" jdbcType="TINYINT" property="resourceType"/>
+        <result column="user_id" jdbcType="INTEGER" property="userId"/>
+        <result column="user_nickname" jdbcType="INTEGER" property="userNickname"/>
+        <result column="user_avatar" jdbcType="INTEGER" property="userAvatar"/>
+        <result column="type_id" jdbcType="TINYINT" property="typeId"/>
+        <result column="resource_id" jdbcType="INTEGER" property="resourceId"/>
+        <result column="comment_content" jdbcType="VARCHAR" property="commentContent"/>
+        <result column="user_like" jdbcType="INTEGER" property="userLike"/>
+        <result column="admin_like" jdbcType="INTEGER" property="adminLike"/>
+        <result column="reply_count" jdbcType="INTEGER" property="replyCount"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+        <result column="comment_status" jdbcType="TINYINT" property="commentStatus"/>
+    </resultMap>
+
+    <resultMap id="DtoResultMap" type="cn.dtmusic.api.dto.CommentDto">
+        <id column="comment_id" jdbcType="INTEGER" property="commentId"/>
+        <result column="user_id" jdbcType="INTEGER" property="userId"/>
+        <result column="user_nickname" jdbcType="INTEGER" property="userNickname"/>
+        <result column="fans_number" jdbcType="INTEGER" property="fansNumber"/>
+        <result column="type_id" jdbcType="TINYINT" property="typeId"/>
+        <result column="resource_id" jdbcType="INTEGER" property="resourceId"/>
+        <result column="resource_name" jdbcType="INTEGER" property="resourceName"/>
+        <result column="comment_content" jdbcType="VARCHAR" property="commentContent"/>
+        <result column="user_like" jdbcType="INTEGER" property="userLike"/>
+        <result column="admin_like" jdbcType="INTEGER" property="adminLike"/>
+        <result column="reply_count" jdbcType="INTEGER" property="replyCount"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="comment_status" jdbcType="TINYINT" property="commentStatus"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="cn.dtmusic.api.entity.Comment">
+
+        insert into t_comment (user_id, user_nickname, user_avatar, type_id,
+                               resource_id, comment_content)
+        values (#{userId,jdbcType=INTEGER}, #{userNickname,jdbcType=VARCHAR}, #{userAvatar,jdbcType=VARCHAR},
+                #{typeId,jdbcType=TINYINT}, #{resourceId,jdbcType=INTEGER}, #{commentContent,jdbcType=VARCHAR})
+    </insert>
+
+    <update id="updateByPrimaryKey" parameterType="cn.dtmusic.api.entity.Comment">
+        update t_comment
+        set resource_type   = #{resourceType,jdbcType=TINYINT},
+            resource_id     = #{resourceId,jdbcType=INTEGER},
+            user_id         = #{userId,jdbcType=INTEGER},
+            comment_content = #{commentContent,jdbcType=VARCHAR},
+            user_like       = #{userLike,jdbcType=INTEGER},
+            admin_like      = #{adminLike,jdbcType=INTEGER},
+            reply_count     = #{replyCount,jdbcType=INTEGER},
+            create_time     = #{createTime,jdbcType=TIMESTAMP},
+            update_time     = #{updateTime,jdbcType=TIMESTAMP},
+            comment_status  = #{commentStatus,jdbcType=TINYINT}
+        where comment_id = #{commentId,jdbcType=INTEGER}
+    </update>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select comment_id,
+               resource_type,
+               user_id,
+               user_nickname,
+               user_avatar,
+               type_id,
+               resource_id,
+               comment_content,
+               user_like,
+               admin_like,
+               reply_count,
+               create_time,
+               update_time,
+               comment_status
+        from t_comment
+        where comment_id = #{commentId,jdbcType=INTEGER}
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        select comment_id,
+               resource_type,
+               user_id,
+               user_nickname,
+               user_avatar,
+               type_id,
+               resource_id,
+               comment_content,
+               user_like,
+               admin_like,
+               reply_count,
+               create_time,
+               update_time,
+               comment_status
+        from t_comment
+    </select>
+
+    <select id="selectByCondition" resultMap="DtoResultMap">
+        select temp.* from(
+        select comment_id,
+        tc.user_id,
+        tc.user_nickname,
+        fans_number,
+        type_id,
+        resource_id,
+        ts.song_name as resource_name,
+        comment_content,
+        user_like,
+        admin_like,
+        reply_count,
+        create_time,
+        comment_status
+        from t_comment tc left join t_user tu on tc.user_id=tu.user_id left join t_song ts on tc.resource_id =
+        ts.song_id where tc.type_id = ts.resource_type UNION
+        select comment_id,
+        tc.user_id,
+        tc.user_nickname,
+        fans_number,
+        type_id,
+        resource_id,
+        tsl.song_list_name as resource_name,
+        comment_content,
+        user_like,
+        admin_like,
+        reply_count,
+        create_time,
+        comment_status
+        from t_comment tc left join t_user tu on tc.user_id=tu.user_id left join t_song_list tsl on tc.resource_id =
+        tsl.song_list_id where tc.type_id = tsl.resource_type UNION
+        select comment_id,
+        tc.user_id,
+        tc.user_nickname,
+        fans_number,
+        type_id,
+        resource_id,
+        ta.album_name as resource_name,
+        comment_content,
+        user_like,
+        admin_like,
+        reply_count,
+        create_time,
+        comment_status
+        from t_comment tc left join t_user tu on tc.user_id=tu.user_id left join t_album ta on tc.resource_id =
+        ta.album_id where tc.type_id = ta.resource_type UNION
+        select comment_id,
+        tc.user_id,
+        tc.user_nickname,
+        fans_number,
+        tc.type_id,
+        tc.resource_id,
+        '动态' as resource_name,
+        comment_content,
+        user_like,
+        admin_like,
+        reply_count,
+        tc.create_time,
+        comment_status
+        from t_comment tc left join t_user tu on tc.user_id=tu.user_id left join t_share tsh on tc.resource_id =
+        tsh.share_id where tc.type_id = tsh.resource_type
+        ) as temp
+        <where>
+            <if test="searchId != null and searchId&gt;0">temp.resource_id = #{searchId}</if>
+            <if test="searchKeyword != null and searchKeyword != ''">temp.resource_name like '%${searchKeyword}%'</if>
+            <if test="searchType != null and searchType&gt;0">and temp.type_id = #{searchType}</if>
+            <if test="searchStatus != null and searchStatus!=0">and temp.comment_status = #{searchStatus}</if>
+        </where>
+        order by temp.create_time desc
+    </select>
+
+    <update id="disableComment" parameterType="int">
+        update t_comment
+        set comment_status = 0
+        where comment_id = #{id}
+    </update>
+
+    <update id="enableComment" parameterType="int">
+        update t_comment
+        set comment_status = 1
+        where comment_id = #{id}
+    </update>
+
+    <select id="selectByResourceId" resultMap="BaseResultMap">
+        select comment_id,
+               resource_type,
+               user_id,
+               user_nickname,
+               user_avatar,
+               type_id,
+               resource_id,
+               comment_content,
+               user_like,
+               admin_like,
+               reply_count,
+               create_time,
+               update_time,
+               comment_status
+        from t_comment
+        where resource_id = #{resourceId}
+          and type_id = #{resourceTye}
+          and comment_status = 1
+        order by create_time desc
+    </select>
+
+    <update id="updateSongCommentCount">
+        <selectKey resultType="int" keyColumn="comment_count" keyProperty="commentCount" order="AFTER">
+            select comment_count from t_song where song_id = #{songId}
+        </selectKey>
+        update t_song
+        set t_song.comment_count = t_song.comment_count + 1
+        where song_id = #{songId}
+    </update>
+
+    <update id="updateSongListCommentCount" parameterType="int">
+        <selectKey resultType="int" keyColumn="comment_count" keyProperty="commentCount" order="AFTER">
+            select comment_count from t_song_list where song_List_id = #{songListId}
+        </selectKey>
+        update t_song_list
+        set t_song_list.comment_count = t_song_list.comment_count + 1
+        where song_list_id = #{songListId}
+    </update>
+
+    <update id="updateAlbumCommentCount" parameterType="int">
+        <selectKey resultType="int" keyColumn="comment_count" keyProperty="commentCount" order="AFTER">
+            select comment_count from t_album where album_id = #{albumId}
+        </selectKey>
+        update t_album
+        set t_album.comment_count = t_album.comment_count + 1
+        where album_id = #{albumId}
+    </update>
+
+    <update id="updateShareCommentCount" parameterType="int">
+        <selectKey resultType="int" keyColumn="comment_count" keyProperty="commentCount" order="AFTER">
+            select comment_count from t_share where share_id = #{shareId}
+        </selectKey>
+        update t_share
+        set t_share.comment_count = t_share.comment_count + 1
+        where share_id = #{shareId}
+    </update>
+
+    <update id="updateReplyCount">
+        <selectKey resultType="int" keyColumn="reply_count" keyProperty="replyCount" order="AFTER">
+            select reply_count from t_comment where comment_id = #{commentId}
+        </selectKey>
+        update t_comment
+        set t_comment.reply_count = t_comment.reply_count + 1
+        where comment_id = #{commentId}
+    </update>
+
+    <update id="addAdminLike">
+        <selectKey resultType="int" keyProperty="adminLike" keyColumn="admin_like" order="AFTER">
+            select t_comment.admin_like from t_comment where t_comment.comment_id = #{commentId}
+        </selectKey>
+        update t_comment set t_comment.admin_like = t_comment.admin_like+10 where t_comment.comment_id = #{commentId}
+    </update>
+
+    <update id="clearAdminLike">
+        <selectKey resultType="int" keyProperty="adminLike" keyColumn="admin_like" order="AFTER">
+            select t_comment.admin_like from t_comment where t_comment.comment_id = #{commentId}
+        </selectKey>
+        update t_comment set t_comment.admin_like = 0 where t_comment.comment_id = #{commentId}
+    </update>
+</mapper>

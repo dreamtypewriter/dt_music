@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-cn" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>DT云音乐-给您最差的音乐体验</title>
+    <link rel="shortcut icon" th:href="@{/assets/img/favicon.ico}"/>
+
+    <!-- Bootstrap core CSS -->
+    <link th:href="@{/assets/dist/css/bootstrap.css}" rel="stylesheet">
+    <link th:href="@{/assets/css/main.css}" rel="stylesheet">
+
+
+</head>
+<body>
+<!--引入导航栏-->
+<div th:replace="~{common/topBar::topBar}"></div>
+
+<!--主容器-->
+<div id="myMusicSingerListDiv" class="container shadow-sm">
+    <br/>
+    <div class="row">
+        <!--左侧-->
+        <div class="container col-3 nav flex-column nav-tabs shadow-sm " >
+            <br/>
+            <div class="nav flex-column nav-tabs">
+                <a class="nav-link active"  :href="'myMusic/mySingerList'">
+                    我的歌手
+                </a>
+            </div>
+            <br/>
+            <br/>
+            <!-- 歌单列表 -->
+            <!--创建的歌单-->
+            <div class="nav flex-column nav-tabs">
+                <a class="nav-link active" data-toggle="collapse" href="#createdSongListDiv">
+                    创建的歌单&emsp;
+                    <button class="btn btn-info btn-sm" id="myModal" data-toggle="modal" data-target="#addSongListModal">新增</button>
+                </a>
+            </div>
+            <br/>
+            <div class="container collapse show nav flex-column" >
+                <div v-for="sl in createdSongLists">
+                    <div class="row">
+                        <div class="col-3 text-center m-auto">
+                            <img :src="sl.songlistImg" alt=".." width="60px" height="60px">
+                        </div>
+                        <div class="col-9">
+                            <a class="nav-link" :href="'/myMusic/mySongList'" @click.prevent="showSingleSonglist(sl.songListId)"  >
+                                <p>{{sl.songListName}}</p>
+                            </a>
+                            <p class="text-muted">{{sl.songCount}}首&emsp;
+                                <button class="btn btn-success  btn-sm" @click="removeSongList(sl.songListId)"> 删除</button>
+                                <button class="btn btn-info btn-sm"  data-toggle="modal" data-target="#editSongListModal"  >编辑</button>
+                                <!--<button class="btn btn-info  btn-sm" @click="modifySongList(sl.songListId)"> 编辑</button>-->
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--收藏的歌单-->
+            <div class="nav flex-column nav-tabs">
+                <a class="nav-link active" data-toggle="collapse" href="#collectedSongListDiv">
+                    收藏的歌单
+                </a>
+            </div>
+            <br/>
+            <div class="container collapse show nav flex-column" id="collectedSongListDiv">
+                <div v-for="sl in collectedSongLists">
+                    <!--<a class="nav-link" href="/myMusic/playList?id=1" >-->
+                    <a class="nav-link" href="#" onclick="showSingleSonglist()" >
+                        <div class="row">
+                            <div class="col-3 text-center m-auto">
+                                <img :src="sl.songlistImg" alt=".." width="60px" height="60px">
+                            </div>
+                            <div class="col-9">
+                                <p>{{sl.songListName}}</p>
+                                <p class="text-muted">{{sl.songCount}}首&emsp;By&emsp; {{sl.userNickname}}</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <!--右侧-->
+        <div class="col-9" id="myMusicPlayListDiv">
+            <div class="container" v-for="singer in singers">
+                <div class="container row">
+                    <div class="col-3 text-center m-auto">
+                        <a href="/singerContent?id=1">
+                            <img class="rounded-circle" :src="singer.singerImg" alt=".." width="120px" height="120px">
+                        </a>
+                    </div>
+                    <div class="col-9">
+                        <br/>
+                        <a :href="'/singer/content?id='+singer.singerId">
+                            <h4>{{singer.singerName}}</h4>
+                        </a>
+                        <br/>
+                        <p class="text-muted">{{singer.albumCount}}个专辑&nbsp;{{singer.songCount}}首单曲</p>
+                    </div>
+                </div>
+                <hr/>
+            </div>
+        </div>
+
+        <!--添加歌单模态框-->
+        <div class="modal fade" id="addSongListModal" tabindex="-1" role="dialog" aria-labelledby="addSongListModalLabel"
+             aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addSongListModalLabel">新建歌单</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form class="table" th:action="@{/songList/addSongList}" method="post" id="addSongListForm">
+                            <span>请输入歌单名称：</span>
+                            <input type="text" class="form-control" name="songListName" id="songListName"></input>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                                <button type="submit" class="btn btn-primary"  @click.prevrnt="addSongList()">确定</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--引入页脚-->
+<div th:replace="~{common/footer::footer}"></div>
+
+<!--依赖的js-->
+<script src="/assets/js/jquery-3.5.1.js"></script>
+<script src="/assets/dist/js/bootstrap.js"></script>
+<script src="/assets/js/vue.js"></script>
+
+<!--自定义脚本-->
+<script th:inline="javascript">
+
+    $("#addSongListModal").modal("hide");
+    function getSongListId(ID) {
+        $("#id").val(ID);
+    }
+    let myMusicSingerListDiv = new Vue({
+        el: '#myMusicSingerListDiv',
+        data: {
+            singers:{},
+            createdSongLists:{},
+            collectedSongLists:{}
+        },
+        methods:{
+            /*showSingleSonglist: function(id){
+                var _this = this ;
+                $.post("/songList/showSingleSongList","songListId="+id,function (data) {
+                    _this.songList = data ;
+                },"json");
+            },
+            showCollectedSingleSonglist: function(id){
+                var _this = this ;
+                $.post("/songList/showCollectedSingleSonglist","songListId="+id,function (data) {
+                    _this.songList = data ;
+                },"json");
+            },*/
+            removeSongList:function (id) {
+                if(confirm("确定删除?")){
+                    $.post("/songList/delSingleSongList","songListId="+id,function(data){
+                        if (data==1) {
+                            alert("删除成功!");
+                            location.reload();
+                        }else {
+                            alert("删除失败!");
+                        }
+                    },"json")
+
+                }
+            },
+        },
+        created(){
+            this.singers = [[${singers}]];
+            this.createdSongLists = [[${createdSongLists}]];
+            this.collectedSongLists = [[${collectedSongLists}]];
+        }
+    })
+
+</script>
+</body>
+</html>

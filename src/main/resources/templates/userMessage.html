@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-cn" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>DT云音乐-给您最差的音乐体验</title>
+    <link rel="shortcut icon" th:href="@{/assets/img/favicon.ico}"/>
+
+    <link th:href="@{/assets/dist/css/bootstrap.css}" rel="stylesheet">
+    <link th:href="@{/assets/css/main.css}" rel="stylesheet">
+
+</head>
+<body>
+<!--引入导航栏-->
+<div th:replace="~{common/topBar::topBar}"></div>
+
+<!--主容器-->
+<div class="container shadow-sm" id="userMessageDiv">
+    <br/>
+    <table class="table table-bordered">
+        <thead>
+        <tr>
+            <td width="25%" class="text-center text-muted">近期消息</td>
+            <td width="75%" class="text-center">某个用户名字</td>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td width="25%" rowspan="2">
+                <div class="pre-scrollable-550" style="height: 800px">
+                    <div class="nav flex-column nav-tabs" role="tablist" aria-orientation="vertical">
+                        <a class="nav-link color-gray active show" data-toggle="pill" role="tab" aria-controls="messageContent1" aria-selected="true"
+                           href="#messageContentPane1" id="messageContentTab0">
+                            <div class="media">
+                                <img class="mr-3 rounded-circle" th:src="@{/assets/img/favicon.ico}" alt="头像" width="50px" height="50px">
+                                <div class="media-body">
+                                    <p class="mt-0">用户名</p>
+                                    <p class="small text-muted text-fixed-140">最新一条消息11111111111111</p>
+                                </div>
+                            </div>
+                        </a>
+                        <a class="nav-link color-gray" data-toggle="pill" role="tab" :aria-controls="'messageContent'+i" aria-selected="true"
+                           v-for="i in 20" :href="'#messageContentPane'+i" :id="'messageContentTab'+i">
+                            <div class="media">
+                                <img class="mr-3 rounded-circle" th:src="@{/assets/img/favicon.ico}" alt="头像" width="50px" height="50px">
+                                <div class="media-body">
+                                    <p class="mt-0">用户名</p>
+                                    <p class="small text-muted text-fixed-140">最新一条消息11111111111111</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </td>
+            <td width="75%" class="back-gray ">
+
+                <div class="container tab-content pre-scrollable-350">
+                    <div class=" tab-pane fade show active" role="tabpanel" aria-labelledby="messageContentTab1"
+                         id="messageContentPane1">
+                        <div>
+                            <div class="row">
+                                <div class="col-1 text-center">
+                                    <img class="rounded-circle" th:src="@{/assets/img/favicon.ico}" alt="头像" width="30px" height="30px">
+                                </div>
+                                <div class=" col-8  bg-white thumbnail">
+                                    <p>最新一条消息</p>
+                                </div>
+                            </div>
+                            <br/>
+                        </div>
+                        <div>
+                            <div class="row">
+                                <div class="col-3"></div>
+                                <div class=" col-8  bg-white thumbnail">
+                                    <p>最新一条消息</p>
+                                </div>
+                                <div class="col-1 text-center">
+                                    <img class="rounded-circle" th:src="@{/assets/img/favicon.ico}" alt="头像" width="30px" height="30px">
+                                </div>
+                            </div>
+                            <br/>
+                        </div>
+                    </div>
+                    <div v-for="i in 19" class="tab-pane fade" role="tabpanel" :aria-labelledby="'messageContentTab'+(i+1)"
+                         :id="'messageContentPane'+(i+1)">
+
+                        {{i+1}}
+
+                    </div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <form>
+                    <div class="form-group">
+                        <textarea class="form-control" rows="4" placeholder="现在回复吧~" required maxlength="1000"></textarea>
+                    </div>
+                    <div class="text-right">
+                        <span class="col-1"></span>
+                        <button type="submit" class="btn btn-outline-info btn-sm">回&emsp;复</button>
+                    </div>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+
+    </table>
+</div>
+
+<!--引入页脚-->
+<div th:replace="~{common/footer::footer}"></div>
+
+<!--依赖的js-->
+<script src="/assets/js/jquery-3.5.1.js"></script>
+<script src="/assets/dist/js/bootstrap.js"></script>
+<script src="/assets/js/vue.js"></script>
+
+<!--自定义脚本-->
+<script>
+    let userMessageDiv = new Vue({
+        el: '#userMessageDiv',
+        data: {},
+        methods: {},
+        created() {
+        }
+    })
+</script>
+
+</body>
+</html>

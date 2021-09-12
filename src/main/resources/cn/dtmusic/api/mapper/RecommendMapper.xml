@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cn.dtmusic.api.mapper.RecommendMapper">
+
+    <resultMap id="songDtoMap" type="cn.dtmusic.api.dto.SongDto">
+        <id column="song_id" jdbcType="INTEGER" property="songId"/>
+        <result column="song_img_path" jdbcType="VARCHAR" property="songImgPath"/>
+        <result column="song_name" jdbcType="VARCHAR" property="songName"/>
+        <result column="comment_count" jdbcType="INTEGER" property="commentCount"/>
+        <result column="play_count" jdbcType="INTEGER" property="playCount"/>
+        <result column="collection_count" jdbcType="INTEGER" property="collectionCount"/>
+        <result column="song_status" jdbcType="INTEGER" property="songStatus"/>
+        <association property="singer" javaType="cn.dtmusic.api.entity.Singer" autoMapping="true">
+            <id column="singer_id" property="singerId"/>
+            <result column="singer_name" jdbcType="VARCHAR" property="singerName"/>
+        </association>
+    </resultMap>
+
+    <select id="selectSongs" resultMap="songDtoMap">
+        select t_song.song_id,
+               t_song.song_img_path,
+               t_song.song_name,
+               t_song.comment_count,
+               t_song.play_count,
+               t_song.collection_count,
+               t_song.song_status,
+               t_song.singer_id,
+               ts.singer_name
+        from t_song
+                 left join t_singer ts on t_song.singer_id = ts.singer_id
+        where song_status = 1
+        order by collection_count desc
+        limit #{size}
+    </select>
+
+</mapper>

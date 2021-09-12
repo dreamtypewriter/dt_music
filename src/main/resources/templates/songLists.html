@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-cn" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>DT云音乐-给您最差的音乐体验</title>
+    <link rel="shortcut icon" th:href="@{/assets/img/favicon.ico}"/>
+
+    <link th:href="@{/assets/dist/css/bootstrap.css}" rel="stylesheet">
+    <link th:href="@{/assets/css/main.css}" rel="stylesheet">
+
+</head>
+<body>
+<!--引入导航栏-->
+<div th:replace="~{common/topBar::topBar}"></div>
+
+<!--主容器-->
+<div class="container shadow-sm" id="songListDiv">
+    <br/>
+    <!--  分类  -->
+    <div class="container row">
+        <div class="col-3 shadow-sm">
+            <li class="nav-item text-muted">语种</li>
+            <ul class="nav nav-pills">
+                <li class="nav-item" v-for="category in categories1">
+                    <a class="nav-link" href="#" @click="refreshData(category.categoryId)">{{category.categoryName}}</a>
+                </li>
+            </ul>
+        </div>
+        <div class="col-3 shadow-sm">
+            <li class="nav-item text-muted">风格</li>
+            <ul class="nav nav-pills">
+                <li class="nav-item" v-for="category in categories2">
+                    <a class="nav-link" href="#" @click="refreshData(category.categoryId)">{{category.categoryName}}</a>
+                </li>
+            </ul>
+        </div>
+        <div class="col-3 shadow-sm">
+            <li class="nav-item text-muted">场景</li>
+            <ul class="nav nav-pills">
+                <li class="nav-item" v-for="category in categories3">
+                    <a class="nav-link" href="#" @click="refreshData(category.categoryId)">{{category.categoryName}}</a>
+                </li>
+            </ul>
+        </div>
+        <div class="col-3 shadow-sm">
+            <li class="nav-item text-muted">情感</li>
+            <ul class="nav nav-pills">
+                <li class="nav-item" v-for="category in categories4">
+                    <a class="nav-link" href="#" @click="refreshData(category.categoryId)">{{category.categoryName}}</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <br/>
+    <!--  歌单  -->
+    <div class="container shadow-sm">
+        <h3>歌单</h3>
+        <hr/>
+        <div class="row">
+            <div class="col-sm-6 col-md-2" v-for="songList in songLists">
+                <div class="card">
+                    <a :href="'/songList/content?id='+songList.songListId">
+                        <img class="card-img-top" :src="songList.songlistImg" alt="..">
+                    </a>
+                </div>
+                <div class="card-body">
+                    <a :href="'/songList/content?id='+songList.songListId"
+                       class="card-title">{{songList.songListName}}</a>
+                    <h6 class="card-subtitle">{{songList.userNickname}}</h6>
+                    <p class="card-text">播放量:{{songList.playCount}}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br/>
+    <nav aria-label="...">
+        <ul class="pagination justify-content-center">
+            <li class="page-item">
+                <a class="page-link" href="javascript:void(0)" @click="goNum(prePage)">上一页</a>
+            </li>
+            <!--<li class="page-item"><a class="page-link" href="#" @click="goNum(prePage)">1</a></li>-->
+            <!--<li class="page-item active">-->
+            <!--<span class="page-link">-->
+            <!--2-->
+            <!--<span class="sr-only">(current)</span>-->
+            <!--</span>-->
+            <!--</li>-->
+            <!--<li class="page-item"><a class="page-link" href="#">3</a></li>-->
+            <li class="page-item">
+                <a class="page-link" href="javascript:void(0)" @click="goNum(nextPage)">下一页</a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<!--引入页脚-->
+<div th:replace="~{common/footer::footer}"></div>
+
+<!--依赖的js-->
+<script src="/assets/js/jquery-3.5.1.js"></script>
+<script src="/assets/dist/js/bootstrap.js"></script>
+<script src="/assets/js/vue.js"></script>
+
+<!--自定义脚本-->
+<script th:inline="javascript">
+    var songListDiv = new Vue({
+        el: '#songListDiv',
+        data: {
+            categories1: [],
+            categories2: [],
+            categories3: [],
+            categories4: [],
+            limit: 18,
+            offset: 0,
+            songLists: [],
+            categoryId: 0,
+
+            prePage: 0,//上一页
+            nextPage: 0,//下一页
+            total: 0,//总条数
+            pages: 0,//总页数
+            pageNum: 1,//当前页数
+            pageSize: 2,
+
+        },
+        created() {
+            this.songLists = [[${songLists.list}]];
+            this.prePage = [[${songLists.prePage}]];
+            this.nextPage = [[${songLists.nextPage}]];
+            this.total = [[${songLists.total}]];
+            this.pageNum = [[${songLists.pageNum}]];
+            this.pageSize = [[${songLists.pageSize}]];
+            this.categories1 = [[${categories1}]]
+            this.categories2 = [[${categories2}]]
+            this.categories3 = [[${categories3}]]
+            this.categories4 = [[${categories4}]]
+            // let _this = this;
+            // $.get('/index/categoryList', null, function (data) {
+            //     console.log(data)
+            //     for (let j = 0; j < 3; j++) {
+            //         _this.categories1.push(data[j])
+            //     }
+            //     for (let j = 3; j < 6; j++) {
+            //         _this.categories2.push(data[j])
+            //     }
+            //     for (let j = 6; j < 9; j++) {
+            //         _this.categories3.push(data[j])
+            //     }
+            //     for (let j = 9; j < 12; j++) {
+            //         _this.categories4.push(data[j])
+            //     }
+            //     console.log(_this.categories1)
+            //     console.log(_this.categories2)
+            //     console.log(_this.categories3)
+            //     console.log(_this.categories4)
+            // }, 'json')
+        },
+        methods: {
+            refreshData(categoryId) {
+                let _this = this;
+                $.get('/index/songList', {
+                    pageNum: this.pageNum,
+                    pageSize: this.pageSize,
+                    categoryId: categoryId
+                }, function (data) {
+                    console.log('songLists', data)
+                    _this.songLists = data.list;
+                }, "json");
+                _this.categoryId = categoryId
+            },
+            goNum(pageNum) {
+                let _this = this;
+                $.get('/index/songList', {
+                    pageNum: pageNum,
+                    pageSize: this.pageSize,
+                    categoryId: this.categoryId
+                }, function (data) {
+                    console.log('songLists', data)
+                    _this.songLists = data.list;
+                    _this.nextPage = data.nextPage;
+                    _this.prePage = data.prePage
+                }, "json");
+            }
+
+
+        }
+    })
+</script>
+
+</body>
+</html>

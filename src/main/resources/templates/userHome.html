@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:v-on="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"
+      xmlns:v-bind="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>DT云音乐-给您最差的音乐体验</title>
+    <link rel="shortcut icon" th:href="@{/assets/img/favicon.ico}"/>
+
+    <!-- Bootstrap core CSS -->
+    <link th:href="@{/assets/dist/css/bootstrap.css}" rel="stylesheet">
+    <link th:href="@{/assets/css/main.css}" rel="stylesheet">
+</head>
+<body>
+<header>
+    <div th:replace="~{common/topBar::topBar}"></div>
+</header>
+<p/>
+<p/>
+<p/>
+<div class="container" id="vueApp">
+    <div class="row">
+
+        <div class="col-md-3" style="margin: 0px auto">
+            <a v-bind:href="'/user/home/'+user.userId"><img v-bind:src="user.userAvatar" width="200px"
+                                           style="position: relative;left: 50px "></a>
+        </div>
+
+        <div class="col-md-9">
+            <div class="row">
+                <div class="col-md-6">
+                    <span style="font-size: 20px" v-text="user.userNickname">爱谁呢</span>
+                    &nbsp;&nbsp;
+                    <span class="badge badge-pill badge-info">lv.<span v-text="user.userLevel">6</span></span>
+                    <a class="btn btn-outline-primary  btn-sm" v-if="user.userId!=loginUser.userId&&temp==1"
+                       href="#" role="button">发私信</a>
+                    <a class="btn btn-outline-primary  btn-sm" v-if="user.userId!=loginUser.userId&&temp==1" @click="updateFollow(user.userId,0)"
+                       role="button">已关注</a>
+                    <a class="btn btn-outline-primary btn-sm" v-else-if="user.userId!=loginUser.userId&&temp!=1" @click="updateFollow(user.userId,1)"
+                       role="button">+关注</a>
+                </div>
+
+                <div class="col-md-3"></div>
+                <div class="col-md-3">
+                    <!--<button type="button" class="btn btn-light">编辑个人资料</button>-->
+                    <a v-if="user.userId==loginUser.userId" th:href="@{/user/userInfo}">编辑个人资料</a>
+                </div>
+            </div>
+            <hr>
+            <div class="row" style="font-size: 18px">
+                <div class="col-md-2" style="border-right:solid red 1px">
+                    <a th:href="@{/friend}">
+                        <div v-text="user.messageNumber">1</div>
+                        <div>动态</div>
+                    </a>
+                </div>
+                <div class="col-md-2" style="border-right:solid red 1px">
+                    <a v-bind:href="'/user/home/'+user.userId">
+                        <div v-text="user.followedNumber">1</div>
+                        <div>关注</div>
+                    </a>
+                </div>
+                <div class="col-md-2">
+                    <a v-bind:href="'/user/fans/'+user.userId">
+                        <div v-text="user.fansNumber">1</div>
+                        <div>粉丝</div>
+                    </a>
+                </div>
+                <div class="col-md-6">
+                </div>
+            </div>
+            <p/>
+            <div class="row">
+                <div class="col-md-12">
+                    所在地区：<span v-text="user.userProvince">河南省</span>-
+                    <span v-text="user.userCity">商丘市1</span>
+                    &nbsp;&nbsp;&nbsp;
+                    年龄：<span v-text="getBirth()"></span>后
+                </div>
+                <br><br>
+                <div class="col-md-12">
+                    社交网络：<span>新浪微博</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <hr>
+
+    <h5>关注(<span v-text="user.followedNumber">2</span>)</h5>
+    <div v-if="user.followedNumber!=null&&user.followedNumber>0">
+        <div class="row">
+
+            <div class="col-md-6" v-for="items in list">
+                <div class="card mb-3">
+                    <div class="row no-gutters" style="font-size: 12px">
+                        <div class="col-md-2">
+                            <a v-bind:href="'/user/home/'+items.userId">
+                                <img v-bind:src="items.userAvatar" style="width: 80px" class="card-img" alt="...">
+                            </a>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="card-body">
+                                <h6 class="card-title" v-text="items.userNickname">爱-谁呢</h6>
+
+                                <div class="row">
+                                    <div class="col-md-4" style="border-right:solid red 1px">
+                                        <a th:href="@{/friend}">
+                                            <div>动态(<span v-text="items.messageNumber"></span>)</div>
+                                        </a>
+                                    </div>
+                                    <div class="col-md-4" style="border-right:solid red 1px">
+                                        <a v-bind:href="'/user/home/'+items.userId">
+                                            <div>关注(<span v-text="items.followedNumber"></span>)</div>
+                                        </a>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <a v-bind:href="'/user/fans/'+items.userId">
+                                            <div>粉丝(<span v-text="items.fansNumber"></span>)</div>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12" v-text="items.userIntroduce">
+                                        这里应该是个人介绍！
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3"></div>
+                        <div class="col-md-2">
+                            <!--                        <br>
+                                                    <div>
+                                                        <a class="btn btn-outline-primary  btn-sm" v-if="user.userId!=items.followUserId&&items.followStatus==1"
+                                                           v-bind:href="'/user/message/'+items.followUserId" role="button"
+                                                        >发私信</a>
+                                                    </div>
+                                                    &lt;!&ndash;<span>{{user.userId}},{{loginUser.userId}},{{items.userId}},{{items.nowUserId}},{{items.followUserId}}</span>&ndash;&gt;
+                                                    <a class="btn btn-outline-primary  btn-sm" v-if="user.userId!=items.followUserId&&items.followStatus==1"
+                                                       role="button">已关注</a>
+                                                    <a class="btn btn-outline-primary btn-sm" v-else-if="user.userId!=items.followUserId&&items.followStatus==0"
+                                                       role="button">+关注</a>
+                                                    <br>-->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <nav aria-label="...">
+                    <ul class="pagination">
+                        <li class="page-item disabled" v-on:click="goNum(prePage)">
+                            <span class="page-link">上一页</span>
+                        </li>
+                        <!--<li class="page-item"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item active" aria-current="page">
+                        <span class="page-link">2
+                            <span class="sr-only">(current)</span>
+                        </span>
+                        </li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>-->
+                        <li class="page-item">
+                            <span class="page-link" v-on:click="goNum(nextPage)">下一页</span>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+    <div v-else-if="(user.followedNumber===null||user.followedNumber===0)&&user.userId===loginUser.userId">
+        <h5>您还没有添加任何关注用户！！！</h5>
+    </div>
+    <div v-else-if="user.followedNumber===null||user.followedNumber===0">
+        <h5>该用户还没有添加任何关注用户！！！</h5>
+    </div>
+
+
+</div>
+
+<footer class="text-muted">
+    <div th:replace="~{common/footer::footer}"></div>
+</footer>
+<script th:src="@{/assets/js/jquery-3.5.1.js}"></script>
+<script th:src="@{/assets/dist/js/bootstrap.js}"></script>
+<script th:src="@{/assets/js/vue.js}"></script>
+
+<script th:inline="javascript">
+    let vueApp = new Vue({
+        el: "#vueApp",
+        data: {
+            user: {},
+            loginUser:{},
+            temp:'',
+            list: [],
+            prePage: 0,
+            nextPage: 2,
+            total: 0,//总条数
+            pages: 0,//总页数
+            pageNum: 1,//当前页数
+            pageSize: 4,
+        },
+        methods: {
+            getBirth: function () {
+                let userBirth = this.user.userBirthday;
+                let year = new Date(userBirth).getFullYear() + "";
+                let a = parseInt(year.slice(3, 4));
+                a=a > 5 ?5 : 0;
+                return year.slice(2, 3) + a;
+            },
+            getFollowPageList: function (pageNum) {
+                let url = '/user/queryPageFollowList';
+                let data = {"userId": this.user.userId, "pageNum": pageNum, "pageSize": this.pageSize};
+                $.get(url, data, function (data) {
+                    vueApp.list = data.list;
+                    console.log(data.list);
+                    vueApp.prePage = data.prePage;
+                    vueApp.nextPage = data.nextPage;
+                }, 'json');
+            },
+            goNum: function (num) {
+                this.getFollowPageList(num);
+            },
+            updateFollow:function (followedUserId,median) {
+                let _this = this;
+                let url = '/user/follow';
+                let data = {"followedUserId":followedUserId, "median": median};
+                $.get(url, data, function (data) {
+                    if(median==1&&data==1){
+                        alert("添加关注成功!");
+                        location.reload();
+                    }else if(median==0&&data==1){
+                        alert("取消关注成功!");
+                        location.reload();
+                    }else if(data==0){
+                        alert("操作失败！");
+                    } else if(data==-1){
+                        alert("请先登录！");
+                    }
+                });
+            },
+            getNowUser:function () {
+                let _this = this;
+                let url = '/user/getNowUser';
+                $.get(url, null, function (data) {
+                    _this.loginUser=data;
+                });
+            },
+        },
+        created: function () {
+            this.user =[[${user}]];
+            this.temp = [[${temp}]];
+            this.getFollowPageList(1);
+            this.getNowUser();
+        },
+
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.dtmusic.api.mapper.LikeMapper">
+    <resultMap id="BaseResultMap" type="cn.dtmusic.api.entity.Like">
+        <id column="like_id" jdbcType="INTEGER" property="likeId"/>
+        <result column="user_id" jdbcType="INTEGER" property="userId"/>
+        <result column="user_liked_id" jdbcType="INTEGER" property="userLikedId"/>
+        <result column="resource_type" jdbcType="TINYINT" property="resourceType"/>
+        <result column="resource_id" jdbcType="INTEGER" property="resourceId"/>
+        <result column="like_status" jdbcType="TINYINT" property="likeStatus"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="cn.dtmusic.api.entity.Like">
+        insert into t_like (user_id, user_liked_id,
+                            resource_type, resource_id)
+        values (#{userId,jdbcType=INTEGER}, #{userLikedId,jdbcType=INTEGER},
+                #{resourceType,jdbcType=TINYINT}, #{resourceId,jdbcType=INTEGER})
+    </insert>
+
+    <update id="updateByPrimaryKey" parameterType="cn.dtmusic.api.entity.Like">
+        update t_like
+        set like_status = #{likeStatus,jdbcType=TINYINT}
+        where like_id = #{likeId,jdbcType=INTEGER}
+    </update>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select like_id,
+               user_id,
+               user_liked_id,
+               resource_type,
+               resource_id,
+               like_status,
+               create_time
+        from t_like
+        where like_id = #{likeId,jdbcType=INTEGER}
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        select like_id,
+               user_id,
+               user_liked_id,
+               resource_type,
+               resource_id,
+               like_status,
+               create_time
+        from t_like
+    </select>
+
+    <select id="selectByCondition" resultMap="BaseResultMap">
+        select like_id,
+               user_id,
+               user_liked_id,
+               resource_type,
+               resource_id,
+               like_status,
+               create_time
+        from t_like
+        where user_id = #{userId}
+          and resource_type = #{resourceType}
+          and resource_id = #{resourceId}
+    </select>
+
+    <update id="reduceShareLikeCount">
+        <selectKey resultType="int" keyColumn="like_count" keyProperty="likeCount" order="AFTER">
+            select like_count from t_share where share_id = #{shareId}
+        </selectKey>
+        update t_share
+        set like_count = t_share.like_count - 1
+        where share_id = #{shareId}
+    </update>
+
+    <update id="addShareLikeCount">
+        <selectKey resultType="int" keyColumn="like_count" keyProperty="likeCount" order="AFTER">
+            select like_count from t_share where share_id = #{shareId}
+        </selectKey>
+        update t_share
+        set like_count = t_share.like_count + 1
+        where share_id = #{shareId}
+    </update>
+
+    <update id="reduceCommentUserLike">
+        <selectKey resultType="int" keyColumn="user_like" keyProperty="userLike" order="AFTER">
+            select user_like from t_comment where comment_id = #{commentId}
+        </selectKey>
+        update t_comment
+        set user_like = t_comment.user_like - 1
+        where comment_id = #{commentId}
+    </update>
+
+    <update id="addCommentUserLike">
+        <selectKey resultType="int" keyColumn="user_like" keyProperty="userLike" order="AFTER">
+            select user_like from t_comment where comment_id = #{commentId}
+        </selectKey>
+        update t_comment
+        set user_like = t_comment.user_like + 1
+        where comment_id = #{commentId}
+    </update>
+
+    <update id="reduceReplyLikeCount">
+        <selectKey resultType="int" keyColumn="like_count" keyProperty="likeCount" order="AFTER">
+            select like_count from t_reply where reply_id = #{replyId}
+        </selectKey>
+        update t_reply
+        set like_count = t_reply.like_count - 1
+        where reply_id = #{id}
+    </update>
+
+    <update id="addReplyLikeCount">
+        <selectKey resultType="int" keyColumn="like_count" keyProperty="likeCount" order="AFTER">
+            select like_count from t_reply where reply_id = #{replyId}
+        </selectKey>
+        update t_reply
+        set like_count = t_reply.like_count + 1
+        where reply_id = #{replyId}
+    </update>
+
+    <select id="selectCount" resultType="int">
+        select count(like_id)
+        from t_like
+        where resource_type = #{resourceType}
+          and resource_id = #{resourceId}
+    </select>
+
+</mapper>

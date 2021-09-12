@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="zh-cn" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>DT云音乐-给您最差的音乐体验</title>
+    <link rel="shortcut icon" th:href="@{/assets/img/favicon.ico}"/>
+
+    <!-- 引入CSS -->
+    <link th:href="@{/assets/dist/css/bootstrap.css}" rel="stylesheet">
+    <link th:href="@{/assets/css/main.css}" rel="stylesheet">
+
+</head>
+<body>
+<!--引入导航栏-->
+<div th:replace="~{common/topBar::topBar}"></div>
+
+<!--主容器-->
+<div id="indexDiv">
+<!--    {{songLists}}-->
+    <!--轮播图-->
+    <div class="bg-light">
+        <div class="container">
+            <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
+                <ol class="carousel-indicators">
+                    <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
+                    <li data-target="#carouselExampleIndicators" data-slide-to="1"></li>
+                    <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
+                </ol>
+                <div class="carousel-inner">
+                    <div class="carousel-item active">
+                        <a href="#">
+                            <img :src="banners[0].bannerPath" class="d-block w-100" alt="...">
+                        </a>
+                    </div>
+                    <div class="carousel-item">
+                        <img :src="banners[1].bannerPath" class="d-block w-100" alt="...">
+                    </div>
+                    <div class="carousel-item">
+                        <img :src="banners[2].bannerPath" class="d-block w-100" alt="...">
+                    </div>
+                </div>
+                <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="sr-only">Previous</span>
+                </a>
+                <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="sr-only">Next</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+
+    <!--歌单推荐-->
+    <div class="container shadow-sm">
+        <br/>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a th:href="@{/index/songLists}" class="color-gray"><strong>歌单推荐</strong></a>
+                </li>
+            </ol>
+        </nav>
+        <div class="row">
+            <div class="col-sm-6 col-md-2" v-for="songList in songLists">
+                <div class="card">
+                    <a :href="'/songList/content?id='+songList.songListId">
+                        <img class="card-img-top" :src="songList.songlistImg" alt="..">
+                    </a>
+                    <div class="card-body">
+                        <a :href="'/songList/content?id='+songList.songListId" class="color-gray">
+                            <h5 class="card-title">{{songList.songListName}}</h5>
+                        </a>
+                        <p class="card-text">播放量:{{songList.playCount}}</p>
+                    </div>
+                </div>
+                <br/>
+            </div>
+        </div>
+    </div>
+
+    <!--歌单推荐-->
+    <div class="container shadow-sm">
+        <br/>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item text-dark ">
+                    <a><strong>单曲推荐</strong></a>
+                </li>
+            </ol>
+        </nav>
+        <div class="row">
+            <div class="col-sm-6 col-md-2" v-for="song in recommendedSongs">
+                <div class="card">
+                    <a :href="'/song/content?id='+song.songId">
+                        <img class="card-img-top" :src="song.songImgPath" alt="单曲图片">
+                    </a>
+                    <div class="card-body">
+                        <a :href="'/song/content?id='+song.songId" class="color-gray">
+                            <h5 class="card-title">{{song.songName}}</h5>
+                        </a>
+                        <p class="card-text">播放量:{{song.playCount}}</p>
+                    </div>
+                </div>
+                <br/>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--播放器-->
+
+<div id="musicPlayerDiv" class="container"></div>
+
+<!--引入页脚-->
+<div th:replace="~{common/footer::footer}"></div>
+
+<!--依赖的js-->
+<script th:src="@{/assets/js/jquery-3.5.1.js}"></script>
+<script th:src="@{/assets/dist/js/bootstrap.js}"></script>
+<script th:src="@{/assets/js/vue.js}"></script>
+
+<!--自定义脚本-->
+<script th:inline="javascript">
+
+    let indexDiv = new Vue({
+        el: '#indexDiv',
+        data: {
+            banners: [{
+                bannerId: 0,
+                bannerPath: ''
+            }],
+            songLists: [],
+            singerList: [],
+            recommendedSongLists: [],
+            recommendedSongs: []
+        },
+        created() {
+            this.recommendedSongs = [[${recommendedSongs}]];
+            this.banners = [[${banners}]]
+            this.songLists = [[${songLists}]]
+            //let _this = this;
+            // $.get('/banner/listBanner', null, function (data) {
+            //     console.log(data)
+            //     _this.banners = data;
+            // }, "json")
+
+            // $.get('/songList/findSomeSongList', null, function (data) {
+            //     console.log(data)
+            //     _this.songLists = data;
+            // }, "json")
+        },
+        methods: {},
+    });
+
+</script>
+
+
+</body>
+</html>

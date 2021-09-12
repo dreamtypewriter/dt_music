@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-cn" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>DT云音乐-给您最差的音乐体验</title>
+    <link rel="shortcut icon" th:href="@{/assets/img/favicon.ico}"/>
+
+    <!-- 引入CSS -->
+    <link th:href="@{/assets/dist/css/bootstrap.css}" rel="stylesheet">
+    <link th:href="@{/assets/css/main.css}" rel="stylesheet">
+
+</head>
+<body>
+<!--引入导航栏-->
+<div th:replace="~{common/topBar::topBar}"></div>
+
+<!--主容器-->
+<div class="container">
+    <br/>
+    <div class="row align-items-center h-75">
+        <div class="col-6 text-center m-auto">
+            <img id="loginLogo" class="rounded-circle" th:src="@{/assets/img/loginLogo.png}" alt="logo图片">
+        </div>
+        <div class="col-6 card">
+                <div class="card-body">
+                    <h5 class="card-title">登陆WN云音乐</h5>
+                    <p class="card-text">查看并管理你收藏的私人音乐，</p>
+                    <p class="card-text">方便地随时随地收听！</p>
+                    <a th:href="@{/user/login}" class="btn btn-primary">立即登录</a>
+                </div>
+        </div>
+    </div>
+</div>
+
+<!--引入页脚-->
+<div th:replace="~{common/footer::footer}"></div>
+
+<!--依赖的js-->
+<script th:src="@{/assets/js/jquery-3.5.1.js}"></script>
+<script th:src="@{/assets/dist/js/bootstrap.js}"></script>
+<script th:src="@{/assets/js/vue.js}"></script>
+
+<!--自定义脚本-->
+<script>
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.dtmusic.api.mapper.ReplyMapper">
+    <resultMap id="BaseResultMap" type="cn.dtmusic.api.entity.Reply">
+        <id column="reply_id" jdbcType="INTEGER" property="replyId"/>
+        <result column="comment_id" jdbcType="INTEGER" property="commentId"/>
+        <result column="user_id" jdbcType="INTEGER" property="userId"/>
+        <result column="user_nickname" jdbcType="VARCHAR" property="userNickname"/>
+        <result column="user_avatar" jdbcType="VARCHAR" property="userAvatar"/>
+        <result column="reply_content" jdbcType="VARCHAR" property="replyContent"/>
+        <result column="like_count" jdbcType="INTEGER" property="likeCount"/>
+        <result column="parent_reply_id" jdbcType="INTEGER" property="parentReplyId"/>
+        <result column="to_user_id" jdbcType="INTEGER" property="toUserId"/>
+        <result column="to_user_nickname" jdbcType="VARCHAR" property="toUserNickname"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="comment_status" jdbcType="TINYINT" property="commentStatus"/>
+    </resultMap>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        delete
+        from t_reply
+        where reply_id = #{replyId,jdbcType=INTEGER}
+    </delete>
+
+    <insert id="insert" parameterType="cn.dtmusic.api.entity.Reply">
+        insert into t_reply (comment_id, user_id,
+                             user_nickname, user_avatar, reply_content,
+                             parent_reply_id, to_user_id,
+                             to_user_nickname)
+        values (#{commentId,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER},
+                #{userNickname,jdbcType=VARCHAR}, #{userAvatar,jdbcType=VARCHAR}, #{replyContent,jdbcType=VARCHAR},
+                #{parentReplyId,jdbcType=INTEGER}, #{toUserId,jdbcType=INTEGER},
+                #{toUserNickname,jdbcType=VARCHAR})
+    </insert>
+
+    <update id="updateByPrimaryKey" parameterType="cn.dtmusic.api.entity.Reply">
+        update t_reply
+        set comment_id       = #{commentId,jdbcType=INTEGER},
+            user_id          = #{userId,jdbcType=INTEGER},
+            user_nickname    = #{userNickname,jdbcType=VARCHAR},
+            user_avatar      = #{userAvatar,jdbcType=VARCHAR},
+            reply_content    = #{replyContent,jdbcType=VARCHAR},
+            like_count  = #{userLikeCount,jdbcType=INTEGER},
+            parent_reply_id  = #{parentReplyId,jdbcType=INTEGER},
+            to_user_id       = #{toUserId,jdbcType=INTEGER},
+            to_user_nickname = #{toUserNickname,jdbcType=VARCHAR},
+            create_time      = #{createTime,jdbcType=TIMESTAMP},
+            comment_status   = #{commentStatus,jdbcType=TINYINT}
+        where reply_id = #{replyId,jdbcType=INTEGER}
+    </update>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select reply_id,
+               comment_id,
+               user_id,
+               user_nickname,
+               user_avatar,
+               reply_content,
+               like_count,
+               parent_reply_id,
+               to_user_id,
+               to_user_nickname,
+               create_time,
+               comment_status
+        from t_reply
+        where reply_id = #{replyId,jdbcType=INTEGER}
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        select reply_id,
+               comment_id,
+               user_id,
+               user_nickname,
+               user_avatar,
+               reply_content,
+               like_count,
+               parent_reply_id,
+               to_user_id,
+               to_user_nickname,
+               create_time,
+               comment_status
+        from t_reply
+    </select>
+
+    <select id="selectByCommentId" resultMap="BaseResultMap">
+        select reply_id,
+               comment_id,
+               user_id,
+               user_nickname,
+               user_avatar,
+               reply_content,
+               like_count,
+               parent_reply_id,
+               to_user_id,
+               to_user_nickname,
+               create_time,
+               comment_status
+        from t_reply
+        where comment_id = #{commentId}
+          and comment_status = 1
+        order by create_time desc
+    </select>
+</mapper>

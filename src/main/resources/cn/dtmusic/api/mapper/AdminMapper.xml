@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.dtmusic.api.mapper.AdminMapper">
+    <resultMap id="BaseResultMap" type="cn.dtmusic.api.entity.Admin">
+        <id column="admin_id" jdbcType="INTEGER" property="adminId"/>
+        <result column="admin_phone" jdbcType="CHAR" property="adminPhone"/>
+        <result column="admin_name" jdbcType="VARCHAR" property="adminName"/>
+        <result column="admin_password" jdbcType="VARCHAR" property="adminPassword"/>
+        <result column="admin_avatar" jdbcType="VARCHAR" property="adminAvatar"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="modify_date" jdbcType="TIMESTAMP" property="modifyDate"/>
+        <association property="role" javaType="cn.dtmusic.api.entity.Role">
+            <id property="roleId" column="role_id" jdbcType="INTEGER"/>
+            <result column="role_name" property="roleName" jdbcType="VARCHAR"/>
+        </association>
+    </resultMap>
+
+    <resultMap id="HomeDataMap" type="cn.dtmusic.api.dto.HomeDataDto">
+        <result column="song_Count" jdbcType="CHAR" property="songCount"/>
+        <result column="songList_Count" jdbcType="CHAR" property="songListCount"/>
+        <result column="album_Count" jdbcType="CHAR" property="albumCount"/>
+        <result column="user_Count" jdbcType="CHAR" property="userCount"/>
+        <result column="share_Count" jdbcType="CHAR" property="shareCount"/>
+        <result column="comment_Count" jdbcType="CHAR" property="commentCount"/>
+        <result column="reply_Count" jdbcType="CHAR" property="replyCount"/>
+    </resultMap>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        delete
+        from t_admin
+        where admin_id = #{adminId,jdbcType=INTEGER}
+    </delete>
+
+    <insert id="insert" parameterType="cn.dtmusic.api.entity.Admin"
+            useGeneratedKeys="true" keyColumn="admin_id" keyProperty="adminId">
+        insert into t_admin (admin_name, admin_phone, admin_password)
+        values (#{adminName,jdbcType=VARCHAR}, #{adminPhone,jdbcType=CHAR}, #{adminPassword,jdbcType=VARCHAR})
+    </insert>
+
+    <update id="updateBySuperAdmin" parameterType="cn.dtmusic.api.entity.Admin">
+        update t_admin
+        set admin_phone    = #{adminPhone,jdbcType=CHAR},
+            admin_name     = #{adminName,jdbcType=VARCHAR},
+            admin_password = #{adminPassword,jdbcType=VARCHAR}
+        where admin_id = #{adminId,jdbcType=INTEGER}
+    </update>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select ta.admin_id,
+               admin_phone,
+               admin_name,
+               admin_password,
+               admin_avatar,
+               tar.role_id,
+               create_date,
+               modify_date,
+               tr.role_name
+        from t_admin ta
+                 left join t_admin_role tar on ta.admin_id = tar.admin_id
+                 left join t_role tr on tar.role_id = tr.role_id
+        where ta.admin_id = #{adminId,jdbcType=INTEGER}
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        select admin_id,
+               admin_phone,
+               admin_name,
+               admin_password,
+               admin_avatar,
+               create_date,
+               modify_date
+        from t_admin
+    </select>
+
+    <select id="selectByAdminName" resultMap="BaseResultMap">
+        select ta.admin_id,
+               admin_phone,
+               admin_name,
+               admin_password,
+               admin_avatar,
+               tar.role_id,
+               create_date,
+               modify_date,
+               tr.role_name
+        from t_admin ta
+                 left join t_admin_role tar on ta.admin_id = tar.admin_id
+                 left join t_role tr on tar.role_id = tr.role_id
+        where admin_name = #{adminName}
+    </select>
+
+    <select id="selectAdminsByPage" resultMap="BaseResultMap">
+        select ta.admin_id,
+        admin_phone,
+        admin_name,
+        admin_password,
+        admin_avatar,
+        tar.role_id,
+        create_date,
+        modify_date,
+        tr.role_name
+        from t_admin ta
+        left join t_admin_role tar on ta.admin_id = tar.admin_id
+        left join t_role tr on tar.role_id = tr.role_id
+        <where>
+            <if test="adminName!=null and adminName!=''">and ta.admin_name like '%${adminName}%'</if>
+            <if test="roleId!=null and roleId!=0">and tr.role_id = #{roleId}</if>
+        </where>
+    </select>
+
+    <update id="updateAdminRole">
+        update t_admin_role
+        set role_id = #{roleId}
+        where admin_id = #{adminId}
+    </update>
+
+    <update id="updateByAdminSelf">
+        update t_admin
+        set admin_avatar   =#{adminAvatar,jdbcType=VARCHAR},
+            admin_phone    = #{adminPhone,jdbcType=CHAR},
+            admin_password = #{adminPassword,jdbcType=VARCHAR}
+        where admin_id = #{adminId}
+    </update>
+
+    <select id="selectHomeData" resultType="int">
+        select count(song_id) as count_list
+        from t_song where song_status = 1
+        UNION ALL
+        select count(song_list_id)
+        from t_song_list
+        UNION ALL
+        select count(album_id)
+        from t_album where album_status = 1
+        UNION ALL
+        select count(user_id)
+        from t_user
+        UNION ALL
+        select count(share_id)
+        from t_share
+        UNION ALL
+        select count(comment_id)
+        from t_comment
+        UNION ALL
+        select count(reply_id)
+        from t_reply
+    </select>
+
+    <select id="selectByNameOrPhone" resultMap="BaseResultMap">
+        select admin_id
+        from t_admin
+        where admin_name = #{adminName}
+           or admin_phone = #{adminPhone}
+    </select>
+
+</mapper>

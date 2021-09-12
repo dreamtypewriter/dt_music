@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-cn" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>DT云音乐-给您最差的音乐体验</title>
+    <link rel="shortcut icon" th:href="@{/assets/img/favicon.ico}"/>
+
+    <link th:href="@{/assets/dist/css/bootstrap.css}" rel="stylesheet">
+    <link th:href="@{/assets/css/main.css}" rel="stylesheet">
+</head>
+<body>
+<!--引入导航栏-->
+<div th:replace="~{common/topBar::topBar}"></div>
+
+<!--主容器-->
+<div class="container shadow-sm" id="searchListDiv">
+    <br/>
+    <!--切换搜索结果-->
+    <div class="row m-auto">
+        <ul class="nav nav-tabs">
+            <li class="nav-item text-muted disabled">
+                <h5 class="nav-link disabled">搜索结果</h5>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active text-dark" data-toggle="tab" href="#searchSongPane">单曲</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-dark" data-toggle="tab" href="#searchSongListPane"
+                   @click="doSearchSongList">歌单</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-dark" data-toggle="tab" href="#searchSingerPane"
+                   @click="doSearchSinger">歌手</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-dark" data-toggle="tab" href="#searchAlbumPane"
+                   @click="doSearchAlbum">专辑</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-dark" data-toggle="tab" href="#searchUserPane"
+                   @click="doSearchUser">用户</a>
+            </li>
+        </ul>
+    </div>
+    <br/>
+    <div class="container tab-content">
+        <!--单曲-->
+        <div class="tab-pane fade show active" id="searchSongPane" role="tabpanel">
+            <table class="table" v-if="searchSongs.length">
+                <thead class="thead-light">
+                <tr>
+                    <th scope="col"></th>
+                    <th scope="col">单曲</th>
+                    <th scope="col">歌手</th>
+                    <th scope="col">时长</th>
+                    <th scope="col">专辑</th>
+                    <th scope="col">操作</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="song in searchSongs">
+                    <td><a :href="'/song/content?id='+song.songId">
+                        <img :src="song.songImgPath" class="thumbnail" alt="单曲图" width="60px" height="60px"/>
+                    </a></td>
+                    <td><a :href="'/song/content?id='+song.songId" class="text-dark">
+                        {{song.songName}}
+                    </a></td>
+                    <td>
+                        <a :href="'/singer/content?id='+song.singer.singerId" class="text-dark">
+                            {{song.singer.singerName}}
+                        </a>
+                    </td>
+                    <td>{{song.songLength}}</td>
+                    <td>
+                        <a :href="'/album/content?id='+song.albumDto.albumId" class="text-dark">
+                            {{song.albumDto.albumName}}
+                        </a>
+                    </td>
+                    <td>
+                        <button class="btn btn-outline-info  btn-sm"
+                                @click="playMusic(song.songId)">
+                            <span class="glyphicon glyphicon-play"></span>
+                        </button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <div v-else>
+                <h4>啥也没有?</h4>
+                <br/>
+            </div>
+        </div>
+        <!--歌单-->
+        <div class="tab-pane fade " id="searchSongListPane" role="tabpanel">
+            <div class="row" v-if="searchSongLists.length">
+                <div class="col-sm-6 col-md-2" v-for="songList in searchSongLists">
+                    <div class="card">
+                        <a :href="'/songList/content?id='+songList.songListId">
+                            <img class="card-img-top" :src="songList.songlistImg" alt="歌单图片">
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <a :href="'/songList/content?id='+songList.songListId" class="text-dark">
+                            <h5 class="card-title">{{songList.songListName}}</h5>
+                        </a>
+                        <a :href="'/user/home/'+songList.songListId" class="text-dark">
+                            <h6 class="card-subtitle">{{songList.user.userNickname}}</h6>
+                        </a>
+                        <p class="card-text">播放量:{{songList.playCount}}</p>
+                    </div>
+                </div>
+            </div>
+            <div v-else>
+                <h4>啥也没有?</h4>
+                <br/>
+            </div>
+        </div>
+        <!--歌手-->
+        <div class="tab-pane fade " id="searchSingerPane" role="tabpanel">
+            <div class="row" v-if="searchSingers.length">
+                <div class="col-sm-6 col-md-3 text-center" v-for="singer in searchSingers">
+                    <a :href="'/singer/content?id='+singer.singerId">
+                        <img class="rounded-circle" :src="singer.singerImg" alt=".."
+                             height="200px" width="200px">
+                    </a>
+                    <p></p>
+                    <a :href="'/singer/content?id='+singer.singerId" class="text-dark">
+                        <h5 class="card-title">{{singer.singerName}}</h5>
+                    </a>
+                    <br/>
+                </div>
+            </div>
+            <div v-else>
+                <h4>啥也没有?</h4>
+                <br/>
+            </div>
+        </div>
+        <!--专辑-->
+        <div class="tab-pane fade " id="searchAlbumPane" role="tabpanel">
+            <div class="row" v-if="searchAlbums.length">
+                <div class="col-sm-6 col-md-2" v-for="album in searchAlbums">
+                    <div class="card">
+                        <a :href="'/album/content?id='+album.albumId">
+                            <img class="card-img-top" :src="album.albumImgPath" alt="专辑图">
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <a :href="'/album/content?id='+album.albumId" class="text-dark">
+                            <h5 class="card-title">{{album.albumName}}</h5>
+                        </a>
+                        <a :href="'/singer/content?id='+album.singer.singerId" class="text-dark">
+                            <h6 class="card-subtitle">{{album.singer.singerName}}</h6>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div v-else>
+                <h4>啥也没有?</h4>
+                <br/>
+            </div>
+        </div>
+        <!--用户-->
+        <div class="tab-pane fade " id="searchUserPane" role="tabpanel">
+            <div class="row" v-if="searchUsers.length">
+                <div class="col-sm-6 col-md-3 text-center" v-for="user in searchUsers">
+                    <a :href="'/user/home/'+user.userId">
+                        <img class="rounded-circle" :src="user.userAvatar" alt="头像"
+                             height="200px" width="200px">
+                    </a>
+                    <p></p>
+                    <a :href="'/user/home/'+user.userId" class="text-dark">
+                        <h5 class="card-title">{{user.userNickname}}</h5>
+                    </a>
+                    <br/>
+                </div>
+            </div>
+            <div v-else>
+                <h4>啥也没有?</h4>
+                <br/>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--引入页脚-->
+<div th:replace="~{common/footer::footer}"></div>
+
+<!--依赖的js-->
+<script src="/assets/js/jquery-3.5.1.js"></script>
+<script src="/assets/dist/js/bootstrap.js"></script>
+<script src="/assets/js/vue.js"></script>
+
+<!--自定义脚本-->
+<script th:inline="javascript">
+    let searchListDiv = new Vue({
+        el: '#searchListDiv',
+        data: {
+            searchKeyword: "",
+            searchSongs: [],
+            searchSongLists: [],
+            searchSingers: [],
+            searchAlbums: [],
+            searchUsers: [],
+            isSongsOk: false,
+            isSongListsOk: false,
+            isAlbumsOk: false,
+            isSingersOk: false,
+            isUsersOk: false,
+        },
+        created() {
+            this.searchSongs = [[${searchSongs}]];
+            this.searchKeyword = [[${searchKeyword}]];
+        },
+        methods: {
+            doSearchSongList() {
+                if (!this.isSongListsOk) {
+                    let _this = this;
+                    let url = '/search/songList';
+                    let param = {
+                        searchKeyword: this.searchKeyword
+                    }
+                    $.get(url, param, function (data) {
+                        _this.searchSongLists = data;
+                        _this.isSongListsOk = true;
+                    });
+                }
+            },
+            doSearchSinger() {
+                if (!this.isSingersOk) {
+                    let _this = this;
+                    let url = '/search/singer';
+                    let param = {
+                        searchKeyword: this.searchKeyword
+                    }
+                    $.get(url, param, function (data) {
+                        _this.searchSingers = data;
+                        _this.isSingersOk = true;
+                    });
+                }
+            },
+            doSearchAlbum() {
+                if (!this.isAlbumsOk) {
+                    let _this = this;
+                    let url = '/search/album';
+                    let param = {
+                        searchKeyword: this.searchKeyword
+                    }
+                    $.get(url, param, function (data) {
+                        _this.searchAlbums = data;
+                        _this.isAlbumsOk = true;
+                    });
+                }
+            },
+            doSearchUser() {
+                if (!this.isUsersOk) {
+                    let _this = this;
+                    let url = '/search/user';
+                    let param = {
+                        searchKeyword: this.searchKeyword
+                    }
+                    $.get(url, param, function (data) {
+                        _this.searchUsers = data;
+                        _this.isUsersOk = true;
+                    });
+                }
+            },
+            playMusic(songId) {
+                if (localStorage.getItem('isPlaying') !== 'true') {
+                    localStorage.setItem('newPlayer', 'true');
+                    window.open('/playMusic/newPlayer?songId=' + songId, '_blank');
+                    return;
+                }
+                localStorage.removeItem('newSongId');
+                localStorage.setItem('newSongId', '' + songId);
+            }
+        },
+
+    })
+</script>
+
+</body>
+</html>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cn.dtmusic.api.mapper.SearchMapper">
+
+    <resultMap id="songDtoMap" type="cn.dtmusic.api.dto.SongDto">
+        <id column="song_id" jdbcType="INTEGER" property="songId"/>
+        <result column="song_img_path" jdbcType="VARCHAR" property="songImgPath"/>
+        <result column="song_name" jdbcType="VARCHAR" property="songName"/>
+        <result column="song_length" jdbcType="VARCHAR" property="songLength"/>
+        <result column="song_status" jdbcType="INTEGER" property="songStatus"/>
+        <association property="singer" javaType="cn.dtmusic.api.entity.Singer">
+            <id column="singer_id" property="singerId"/>
+            <result column="singer_name" jdbcType="VARCHAR" property="singerName"/>
+        </association>
+        <association property="albumDto" javaType="cn.dtmusic.api.dto.AlbumDto">
+            <id column="album_id" property="albumId"/>
+            <result column="album_name" jdbcType="VARCHAR" property="albumName"/>
+        </association>
+    </resultMap>
+
+    <resultMap id="songListMap" type="cn.dtmusic.api.entity.SongList">
+        <id column="song_list_id" jdbcType="INTEGER" property="songListId"/>
+        <result column="song_list_name" jdbcType="VARCHAR" property="songListName"/>
+        <result column="list_img_path" jdbcType="VARCHAR" property="songlistImg"/>
+        <result column="play_count" jdbcType="INTEGER" property="playCount"/>
+        <result column="collection_count" jdbcType="INTEGER" property="collectionCount"/>
+        <association property="user" javaType="cn.dtmusic.api.entity.User">
+            <id column="user_id" jdbcType="INTEGER" property="userId"/>
+            <result column="user_nickname" jdbcType="VARCHAR" property="userNickname"/>
+        </association>
+    </resultMap>
+
+    <select id="selectSongsByName" resultMap="songDtoMap">
+        select t_song.song_id,
+               t_song.song_img_path,
+               t_song.song_name,
+               t_song.song_length,
+               t_song.song_status,
+               t_song.singer_id,
+               t_song.collection_count,
+               ts.singer_name,
+               t_song.album_id,
+               ta.album_name
+        from t_song
+                 left join t_singer ts on t_song.singer_id = ts.singer_id
+                 left join t_album ta on t_song.album_id = ta.album_id
+        where song_status = 1
+          and (song_name like '%${name}%' or ts.singer_name like '%${name}%')
+        order by collection_count desc
+    </select>
+
+    <select id="selectSongListsByName" resultMap="songListMap">
+        select song_list_id, song_list_name, list_img_path, play_count, collection_count, tsl.user_id, tu.user_nickname
+        from t_song_list tsl
+                 left join t_user tu on tsl.user_id = tu.user_id
+        where song_list_name like '%${songListName}%'
+        order by collection_count desc
+    </select>
+</mapper>

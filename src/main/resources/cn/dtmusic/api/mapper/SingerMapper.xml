@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.dtmusic.api.mapper.SingerMapper">
+    <resultMap id="BaseResultMap" type="cn.dtmusic.api.entity.Singer">
+        <id column="singer_id" jdbcType="INTEGER" property="singerId"/>
+        <result column="singer_name" jdbcType="VARCHAR" property="singerName"/>
+        <result column="singer_nickname" jdbcType="VARCHAR" property="singerNickname"/>
+        <result column="singer_img" jdbcType="VARCHAR" property="singerImg"/>
+        <result column="singer_type" jdbcType="VARCHAR" property="singerType"/>
+        <result column="singer_language" jdbcType="VARCHAR" property="singerLanguage"/>
+        <result column="singer_description" jdbcType="VARCHAR" property="singerDescription"/>
+        <result column="collection_count" jdbcType="INTEGER" property="collectionCount"/>
+        <result column="singer_status" jdbcType="TINYINT" property="singerStatus"/>
+
+        <association property="user" javaType="cn.dtmusic.api.entity.User">
+            <id column="user_id" jdbcType="INTEGER" property="userId"/>
+            <result column="user_nickname" jdbcType="VARCHAR" property="userNickname"/>
+        </association>
+
+        <collection property="song" ofType="cn.dtmusic.api.dto.SongDto">
+            <id column="song_id" jdbcType="INTEGER" property="songId"/>
+            <result column="song_name" jdbcType="VARCHAR" property="songName"/>
+            <result column="song_length" jdbcType="VARCHAR" property="songLength"/>
+            <association property="singer" javaType="cn.dtmusic.api.entity.Singer">
+                <id property="singerId" column="singer_id"/>
+                <result column="singer_name" jdbcType="VARCHAR" property="singerName"/>
+            </association>
+            <association property="albumDto" javaType="cn.dtmusic.api.dto.AlbumDto">
+                <id column="album_id" jdbcType="INTEGER" property="albumId"/>
+                <result column="album_name" jdbcType="VARCHAR" property="albumName"/>
+            </association>
+        </collection>
+
+        <collection property="album" ofType="cn.dtmusic.api.dto.AlbumDto">
+            <id column="album_id" jdbcType="INTEGER" property="albumId"/>
+            <result column="album_name" jdbcType="VARCHAR" property="albumName"/>
+            <result column="album_img_path" jdbcType="VARCHAR" property="albumImgPath"/>
+            <result column="release_date" jdbcType="DATE" property="releaseDate"/>
+        </collection>
+    </resultMap>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        delete
+        from t_singer
+        where singer_id = #{singerId,jdbcType=INTEGER}
+    </delete>
+
+    <insert id="insert" parameterType="cn.dtmusic.api.entity.Singer">
+        insert into t_singer (singer_name, singer_nickname, singer_img,
+                              singer_type, singer_language, singer_description)
+        values (#{singerName,jdbcType=VARCHAR}, #{singerNickname,jdbcType=VARCHAR}, #{singerImg,jdbcType=VARCHAR},
+                #{singerType,jdbcType=VARCHAR}, #{singerLanguage,jdbcType=VARCHAR},
+                #{singerDescription,jdbcType=VARCHAR})
+    </insert>
+
+    <update id="updateByPrimaryKey" parameterType="cn.dtmusic.api.entity.Singer">
+        update t_singer
+        set singer_name        = #{singerName},
+            singer_img         = #{singerImg,jdbcType=VARCHAR},
+            singer_type        = #{singerType,jdbcType=VARCHAR},
+            singer_language    = #{singerLanguage,jdbcType=VARCHAR},
+            singer_description = #{singerDescription,jdbcType=VARCHAR}
+        where singer_id = #{singerId,jdbcType=INTEGER}
+    </update>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select singer_id,
+               singer_name,
+               singer_img,
+               singer_type,
+               singer_language,
+               singer_description,
+               collection_count,
+               singer_status
+        from t_singer
+        where singer_id = #{singerId,jdbcType=INTEGER}
+          and singer_status = 1
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        select singer_id,
+               singer_name,
+               singer_img,
+               singer_type,
+               singer_language,
+               singer_description,
+               collection_count,
+               singer_status
+        from t_singer
+        where singer_status = 1
+    </select>
+
+    <update id="disableSinger">
+        update t_singer
+        set singer_status = 0
+        where singer_id = #{id}
+    </update>
+
+    <select id="selectByPage" resultMap="BaseResultMap">
+        select singer_id,
+        singer_name,
+        singer_img,
+        singer_type,
+        singer_language,
+        singer_description,
+        collection_count,
+        singer_status
+        from t_singer
+        <where>
+            singer_status = 1
+            <if test="singerName != null and singerName != ''">and singer_name like '%${singerName}%'</if>
+            <if test="singerType != null and singerType != ''">and singer_type = #{singerType}</if>
+            <if test="singerLanguage != null and singerLanguage != ''">and singer_language = #{singerLanguage}</if>
+        </where>
+    </select>
+    <select id="selectTopSinger" resultMap="BaseResultMap">
+        SELECT *
+        FROM t_singer
+        ORDER BY collection_count DESC
+        LIMIT 6
+    </select>
+
+    <select id="selectCollectedSingerByUser" resultMap="BaseResultMap">
+        SELECT s.*
+        FROM t_singer s
+                 LEFT JOIN t_user_singer us ON s.singer_id = us.singer_id
+        WHERE us.user_id = #{userId}
+    </select>
+
+</mapper>

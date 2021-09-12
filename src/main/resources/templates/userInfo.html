@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"  xmlns:v-bind="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>DT云音乐-给您最差的音乐体验</title>
+    <link rel="shortcut icon" th:href="@{/assets/img/favicon.ico}"/>
+    <script th:src="@{/assets/js/jquery-3.5.1.js}"></script>
+    <!-- Bootstrap core CSS -->
+    <link th:href="@{/assets/dist/css/bootstrap.css}" rel="stylesheet">
+    <link th:href="@{/assets/css/main.css}" rel="stylesheet">
+</head>
+<body>
+<header>
+    <div th:replace="~{common/topBar::topBar}"></div>
+</header>
+<p/><p/><p/>
+<div class="container" id="vueApp">
+    <h3>个人设置</h3>
+    <hr>
+    <div class="row">
+        <ul class="nav nav-tabs col-md-12">
+            <li class="nav-item">
+                <a class="nav-link active" href="#">基本设置</a>
+            </li>
+            <!--            <li class="nav-item">
+                            <a class="nav-link" href="#">绑定设置</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">隐私设置</a>
+                        </li>-->
+        </ul>
+    </div>
+    <br>
+    <div class="row">
+        <div class="col-md-7">
+            <form>
+                <div class="form-group row">
+                    <label for="inputEmail3" class="col-sm-2 col-form-label">昵称</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="inputEmail3" placeholder="请输入昵称" v-model="user.userNickname">
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="inputPassword3" class="col-sm-2 col-form-label">介绍</label>
+                    <div class="col-sm-10">
+                        <textarea rows="10px" cols="10px" class="form-control" id="inputPassword3" placeholder="自我简介" v-model="user.userIntroduce"></textarea>
+                    </div>
+                </div>
+                <fieldset class="form-group">
+                    <div class="row">
+                        <legend class="col-form-label col-sm-2 pt-0">性别</legend>
+                        <div class="col-sm-10">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="inlineRadioOptions" v-model="user.userGender" id="inlineRadio1" value="男">
+                                <label class="form-check-label" for="inlineRadio1">男</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="inlineRadioOptions"  v-model="user.userGender" id="inlineRadio2" value="女" >
+                                <label class="form-check-label" for="inlineRadio2">女</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="inlineRadioOptions" v-model="user.userGender" id="inlineRadio3" value="保密" >
+                                <label class="form-check-label" for="inlineRadio3">保密</label>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+                <div class="form-group row">
+                    <label for="inputBirth" class="col-sm-2 col-form-label">生日:</label>
+                    <div class="col-sm-10">
+                        <input type="date" class="form-control" id="inputBirth" v-model="user.userBirthday">
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <label class="col-sm-2 col-form-label">地址:</label>
+                    <div class="col-sm-10">
+
+                        <select id="province"  v-model="user.userProvince" @change="setProvince">
+                            <option  v-text="user.userProvince" >请选择省份</option>
+                        </select>
+                        <select id="city" v-model="user.userCity">
+                            <option v-text="user.userCity">请选择城市</option>
+                        </select>
+<!--                     <select id="town" v-text="user.userBirthday">
+                            <option>请选择县/区</option>
+                        </select>-->
+                    </div>
+                </div>
+                <p/><p/>
+                <div class="form-group row">
+                    <div class="col-sm-10">
+                        <button type="button" class="btn btn-primary" @click="setInfo(user.userId)">提交</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="col-md-5 row">
+            <div class="col-md-6" style="text-align: center">
+                <img :src="user.userAvatar"  width="200px">
+                <div><a href="#">更换头像</a></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="text-muted">
+    <div th:replace="~{common/footer::footer}"></div>
+</footer>
+
+<script th:src="@{/assets/dist/js/bootstrap.js}"></script>
+<script th:src="@{/assets/js/vue.js}"></script>
+
+<script th:inline="javascript">
+    let vueApp = new Vue({
+        el:"#vueApp",
+        data:{
+            user:{
+            },
+        },
+        methods:{
+            getNowUser:function () {
+                let _this = this;
+                let url="/user/getNowUser";
+                $.get(url,null,function (data) {
+                    _this.user=data;
+                })
+            },
+
+            setInfo:function (userId) {
+
+                let url="/user/setInfo";
+                let _this = this;
+                let data = {
+                    userId:userId,
+                    userNickname:this.user.userNickname,
+                    userIntroduce:this.user.userIntroduce,
+                    userGender:this.user.userGender,
+                    userBirthday:this.user.userBirthday,
+                    userProvince:this.user.userProvince,
+                    userCity:this.user.userCity,
+                    userPhone:this.user.userPhone,
+                };
+                $.post(url,data,function (data) {
+                    if(data==1){
+                        alert("修改成功！");
+                        _this.getNowUser();
+                    }else {
+                        alert("修改失败！");
+                    }
+                })
+            },
+            setProvince:function () {
+                this.user.userCity="请选择";
+            }
+
+
+        },
+        created(){
+            this.getNowUser();
+        }
+    })
+</script>
+<!--2.加载省市级联插件-->
+<script type="text/javascript" th:src="@{/assets/js/city-info.js}"></script>
+<script type="text/javascript" th:src="@{/assets/js/city.js}"></script>
+</body>
+</html>

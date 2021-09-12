@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="zh-cn" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>DT云音乐-给您最差的音乐体验</title>
+    <link rel="shortcut icon" th:href="@{/assets/img/favicon.ico}"/>
+
+    <link th:href="@{/assets/dist/css/bootstrap.css}" rel="stylesheet">
+    <link th:href="@{/assets/css/main.css}" rel="stylesheet">
+</head>
+<body>
+<!--引入导航栏-->
+<div th:replace="~{common/topBar::topBar}"></div>
+
+<!--主容器-->
+<div id="albumContentDiv" class="container shadow-sm">
+    <br/>
+    <!--  专辑头信息  -->
+    <div class="container row">
+        <div class="col-4 text-center m-auto">
+            <img class="rounded-circle img-thumbnail" :src="album.albumImgPath" alt=".." width="200px" height="200px">
+        </div>
+        <div class="col-8">
+            <h3>
+                <span class="badge badge-secondary">专辑</span>
+                &nbsp;{{album.albumName}}
+            </h3>
+            <p class="text-muted">歌手：
+                <a :href="'/singer/content?id='+album.singer.singerId">{{album.singer.singerName}}</a>
+            </p>
+            <p class="text-muted">发行时间：{{album.releaseDate}}</p>
+            <p class="text-muted">发行公司：{{album.releaseCompany}}</p>
+            <p>
+                <button class="btn btn-info"
+                        @click="playSongList(album.albumId)">
+                    <span class="glyphicon glyphicon-play"></span> 播放全部
+                </button>
+                <button class="btn btn-danger" data-toggle="modal" data-target="#collectAlbumModal"
+                        @click="showSongListModal1(album.albumId)"
+                        th:disabled="${session.loginUser == null}">
+                    <span class="glyphicon glyphicon-heart"></span> 收藏
+                    <span class="badge badge-danger">{{album.collectionCount}}</span>
+                </button>
+                <a class="btn btn-secondary" href="#playListCommentDiv">
+                    <span class="glyphicon glyphicon-send"></span> 评论
+                    <span class="badge badge-secondary">{{album.commentCount}}</span>
+                </a>
+            </p>
+            <p>
+                <strong>简介：</strong>
+                <span>
+                    {{album.albumDescription}}
+                </span>
+            </p>
+        </div>
+        <hr/>
+    </div>
+    <br/>
+    <br/>
+    <!--  歌曲列表  -->
+    <div class="container">
+        <h3>歌曲列表</h3>
+        <hr/>
+        <table class="table">
+            <thead class="thead-light">
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">歌曲</th>
+                <th scope="col">歌手</th>
+                <th scope="col">时长</th>
+                <th scope="col">专辑</th>
+                <th scope="col">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="(s,index) in album.songs">
+                <td>{{index+1}}</td>
+                <td>
+                    <a :href="'/song/content?id='+s.songId">
+                        {{s.songName}}
+                    </a>
+                </td>
+                <td>
+                    <a :href="'/singer/content?id='+s.singer.singerId">
+                        {{s.singer.singerName}}
+                    </a>
+                </td>
+                <td v-text="s.songLength"></td>
+                <td>
+                    <a>
+                        {{s.albumDto.albumName}}
+                    </a>
+                </td>
+                <td>
+                    <button class="btn btn-outline-info btn-sm"
+                            @click="playSong(s.songId)">
+                        <span class="glyphicon glyphicon-play"></span>
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm" data-toggle="modal" data-target="#collectSongModal"
+                            @click="showSongListModal2(s.songId)"
+                            th:disabled="${session.loginUser == null}">
+                        <span class="glyphicon glyphicon-heart"></span>
+                    </button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <br/>
+    </div>
+
+
+    <!--收藏专辑模态框-->
+    <div class="modal fade" id="collectAlbumModal" tabindex="-1" role="dialog" aria-labelledby="collectAlbumModal" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <form id="collectAlbumForm" @submit.prevent="collectAlbum">
+                    <div class="modal-header bg-light text-black-50">
+                        <h5 class="modal-title ">收藏专辑</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="nav flex-column nav-tabs">
+                            <label>选择歌单</label>
+                        </div>
+                        <br/>
+                        <div class="container collapse show nav flex-column">
+                            <input type="hidden" name="albumId" v-model="album.albumId">
+                            <div class="form-group">
+                                <div v-for="s in songLists">
+                                    <div class="row">
+                                        <div class="col-3 text-center m-auto">
+                                            <img :src="s.songlistImg" alt=".." width="60px" height="60px">
+                                        </div>
+                                        <div class="col-5">
+                                            <p>{{s.songListName}}</p>
+                                        </div>
+                                        <div class="col-4">
+                                            <input type="radio" name="songListId" v-model="selectedListId"
+                                                   :value="s.songListId"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="submit" value="收藏" class="btn btn-info"></input>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!--收藏歌曲模态框-->
+    <div class="modal fade" id="collectSongModal" tabindex="-1" role="dialog" aria-labelledby="collectSongModal" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <form id="collectSongForm" @submit.prevent="collectSong">
+                    <div class="modal-header bg-light text-black-50">
+                        <h5 class="modal-title ">收藏歌曲</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="nav flex-column nav-tabs">
+                            <label>选择歌单</label>
+                        </div>
+                        <br/>
+                        <div class="container collapse show nav flex-column">
+                            <input type="hidden" name="songId" v-model="album.songs.songId">
+                            <div class="form-group">
+                                <div v-for="s in songLists">
+                                    <div class="row">
+                                        <div class="col-3 text-center m-auto">
+                                            <img :src="s.songlistImg" alt=".." width="60px" height="60px">
+                                        </div>
+                                        <div class="col-5">
+                                            <p>{{s.songListName}}</p>
+                                        </div>
+                                        <div class="col-4">
+                                            <input type="radio" name="songListId" v-model="selectedListId"
+                                                   :value="s.songListId"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="submit" value="收藏" class="btn btn-info"></input>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!--  评论列表  -->
+    <div class="container" id="playListCommentDiv">
+        <br/>
+        <h3>评论</h3>
+        <hr/>
+        <!-- 新增评论-->
+        <div class="row" th:if="${session.loginUser}">
+            <div class="col-2 text-center">
+                <img th:src="${session.loginUser.userAvatar}" class="rounded-circle" height="80px" width="80px" alt="...">
+            </div>
+            <div class="col-10">
+                <form id="addCommentForm" @submit.prevent="addComment">
+                    <input hidden name="typeId" value="4">
+                    <input hidden name="resourceId" :value="album.albumId">
+                    <div class="form-group">
+                    <textarea class="form-control" rows="3" name="commentContent" placeholder="立刻评论吧~"
+                              required maxlength="120" v-model="commentText"
+                              :onkeyup="commentTextCount = 120-commentText.length"></textarea>
+                    </div>
+                    <div class="text-right">
+                        剩余{{commentTextCount}}字
+                        <span class="col-1"></span>
+                        <button type="submit" class="btn btn-info btn-sm">发表评论</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="text-center" th:unless="${session.loginUser}">
+            <span>现在登录,和沙雕网友们一起互动!</span>
+            <span class="col-sm-1"></span>
+            <a class="btn btn-info" th:href="@{/user/login}">
+                <span class="glyphicon glyphicon-arrow-right"></span> 登录
+            </a>
+        </div>
+
+        <!--评论内容-->
+        <div v-if="commentPage.total">
+            <h4>
+                所有评论 <span class="badge badge-light">{{album.commentCount}}</span>
+            </h4>
+            <div class="container" v-for="comment in commentPage.list">
+                <hr/>
+                <div class="row">
+                    <div class="col-2 text-center">
+                        <a :href="'/user/home/'+comment.userId">
+                            <img :src="comment.userAvatar" class="rounded-circle" height="80px" width="80px" alt="头像">
+                        </a>
+                    </div>
+                    <div class="col-10">
+                        <p class="mt-0">
+                            <a :href="'/user/home/'+comment.userId">{{comment.userNickname}}</a>
+                        </p>
+                        <p class="text-lg-left" style="word-wrap: break-word;word-break: break-all;">
+                            {{comment.commentContent}}
+                        </p>
+                        <div class="row small text-muted">
+                            <div class="col-8">{{comment.createTime}}</div>
+                            <div class="col-2">
+                                <button class="btn btn-sm btn-outline-info" @click="clickLike(comment, 6, comment.commentId)"
+                                        th:disabled="${session.loginUser}==null">
+                                    <span class="glyphicon glyphicon-thumbs-up"></span>
+                                    <span class="badge badge-light">{{comment.userLike+comment.adminLike}}</span>
+                                </button>
+                            </div>
+                            <div class="col-2">
+                                <a class="btn btn-outline-dark btn-sm" data-toggle="collapse"
+                                   :href="'#replyFormDiv'+comment.commentId"
+                                   @click.prevent="showAddReplyForm(comment.userNickname,null,null,null)">
+                                    <span class="glyphicon glyphicon-send"></span> 回复
+                                    <span class="badge badge-light">{{comment.replyCount}}</span>
+                                </a>
+                            </div>
+                        </div>
+                        <br/>
+                        <!--回复区-->
+                        <div class="container bg-light">
+                            <div v-if="replyPageMap.get(comment.commentId).total">
+                                <div v-for="reply in replyPageMap.get(comment.commentId).list">
+                                    <br/>
+                                    <div class="row">
+                                        <div class="col-2 text-center">
+                                            <a :href="'/user/home/'+reply.userId">
+                                                <img :src="reply.userAvatar" class="rounded-circle" height="50px" width="50px" alt="头像">
+                                            </a>
+                                        </div>
+                                        <div class="col-10">
+                                            <p class="mt-0">
+                                                <a :href="'/user/home/'+reply.userId">{{reply.userNickname}}</a>:
+                                                <span v-if="reply.toUserId>0">@
+                                                    <a :href="'/user/home/'+reply.toUserId">{{reply.toUserNickname}}</a>
+                                                </span>
+                                                <span class="text-lg-left" style="word-wrap: break-word;word-break: break-all;">
+                                                    {{reply.replyContent}}
+                                                </span>
+                                            </p>
+                                            <p class="small text-muted">
+                                                <span>{{reply.createTime}}</span><span class="col-sm-1"></span>
+                                                <a class="color-gray" href="javascript:void(0)"
+                                                   @click="clickLike(reply,7,reply.replyId)">
+                                                    <span class="glyphicon glyphicon-thumbs-up"></span>
+                                                    {{reply.likeCount}}
+                                                </a>
+                                                <span class="col-sm-1"></span>
+                                                <a class="color-gray" data-toggle="collapse"
+                                                   :href="'#replyFormDiv'+comment.commentId"
+                                                   @click.prevent="showAddReplyForm(reply.userNickname,reply.replyId,reply.userId,reply.userNickname)">
+                                                    <span>回复</span>
+                                                </a>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!--动态加载-->
+                                <div class="row" v-if="replyPageMap.get(comment.commentId).hasNextPage">
+                                    <div class="col-5">
+                                        <hr/>
+                                    </div>
+                                    <div class="col-2 text-center">
+                                        <a href="javascript:void(0)" class="color-gray"
+                                           @click="getReplyPage(comment.commentId,false)">
+                                            查看更多 <span class="glyphicon glyphicon-menu-down"></span>
+                                        </a>
+                                    </div>
+                                    <div class="col-5">
+                                        <hr/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!--新增回复-->
+                            <div class="container collapse"
+                                 :id="'replyFormDiv'+comment.commentId">
+                                <br/>
+                                <form :id="'addReplyForm'+comment.commentId"
+                                      @submit.prevent="addReply('addReplyForm',comment.commentId,comment)">
+                                    <input hidden name="commentId" :value="comment.commentId">
+                                    <input hidden name="parentReplyId" :value="formData.parentReplyId">
+                                    <input hidden name="toUserId" :value="formData.toUserId">
+                                    <input hidden name="toUserNickname" :value="formData.toUserNickname">
+                                    <div class="form-group">
+                                        <textarea class="form-control" name="replyContent" rows="3"
+                                                  :placeholder="formData.placeholder" required maxlength="120"
+                                        ></textarea>
+                                    </div>
+                                    <div class="text-right">
+                                        1-120字
+                                        <span class="col-1"></span>
+                                        <button type="submit" class="btn btn-info btn-sm" th:disabled="${session.loginUser}==null">发表回复</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--动态加载-->
+            <br/>
+            <div class="container row">
+                <div class="col-5">
+                    <hr/>
+                </div>
+                <div class="col-2 text-center">
+                    <a href="javascript:void(0)" v-if="commentPage.hasNextPage"
+                       @click="getCommentPage(songList.songId,4,false)" class="color-gray">
+                        查看更多 <span class="glyphicon glyphicon-menu-down"></span>
+                    </a>
+                    <p class="text-center" v-else>到底啦!</p>
+                </div>
+                <div class="col-5">
+                    <hr/>
+                </div>
+            </div>
+        </div>
+        <div class="text-center" v-else>
+            <p> -_-# 啥也没有? <span class="glyphicon glyphicon-hand-up"></span></p>
+            <br/>
+        </div>
+    </div>
+</div>
+
+<!--引入页脚-->
+<div th:replace="~{common/footer::footer}"></div>
+
+<!--依赖的js-->
+<script src="/assets/js/jquery-3.5.1.js"></script>
+<script src="/assets/dist/js/bootstrap.js"></script>
+<script src="/assets/js/vue.js"></script>
+
+<!--自定义脚本-->
+<script th:inline="javascript">
+    let albumContentDiv = new Vue({
+        el: '#albumContentDiv',
+        data: {
+            songList: {},
+            album: {},
+            songLists: {},
+            songId: 0,
+            selectedListId: 0,
+            albumId: 0,
+
+            onlineUser: null,
+            commentPage: {},
+            replyPageMap: new Map(),
+            formDivArray: [],
+            formData: {
+                placeholder: '立刻回复吧!',
+                parentReplyId: 0,
+                toUserId: 0,
+                toUserNickname: ''
+            },
+
+            commentText: '',
+            commentTextCount: 120,
+        },
+        methods: {
+            showSongListModal1: function (id) {
+                this.albumId = id;
+            },
+            showSongListModal2: function (id) {
+                this.songId = id;
+            },
+            collectAlbum: function (id) {
+                var slId = this.selectedListId;
+                var aId = this.albumId;
+                var _this=this;
+                $.post('/collection/isCollectAlbum', {"songListId": slId, "albumId": aId}, function (data) {
+                    console.log(data);
+                    if (data == 1) {
+                        $.post('/collection/collectAlbum', {"songListId": slId, "albumId": aId}, function (data) {
+                            if (data == 1) {
+                                alert("收藏成功!");
+                                $('#collectAlbumModal').modal('hide');
+                                _this.album.collectionCount = _this.songList.collectionCount + 1;
+                            } else {
+                                alert("收藏失败!")
+                            }
+                        }, "json");
+                    } else {
+                        alert("该专辑已被收藏!")
+                    }
+                })
+            },
+            collectSong: function (id) {
+                var slId = this.selectedListId;
+                var sId = this.songId;
+                if (slId != 0) {
+                    $.post('/collection/isCollectSong', {"songListId": slId, "songId": sId}, function (data) {
+                        if (data == 1) {
+                            $.post('/collection/collectSong', {"songListId": slId, "songId": sId}, function (data) {
+                                if (data == 1) {
+                                    alert("收藏成功!");
+                                    location.reload();
+                                } else {
+                                    alert("收藏失败!")
+                                }
+                            }, "json");
+                        } else {
+                            alert("该歌曲已被收藏!")
+                        }
+                    }, "json")
+                } else {
+                    alert("必须选择一个歌单!");
+                }
+
+            },
+
+
+            addComment: async function () {
+                this.commentText = this.commentText.trim();
+                if (this.commentText.length === 0) {
+                    alert('输入无效！');
+
+                    return false;
+                }
+                let params = {};
+                let $form = $('#addCommentForm');
+                $.each($form.serializeArray(), function (index, item) {
+                    params[item.name] = item.value;
+                });
+                let url = '/comment/add';
+                params = JSON.stringify(params);
+                let addResult = await new Promise(function (resolve, reject) {
+                    $.ajax({
+                        url: url,
+                        data: params,
+                        type: 'post',
+                        contentType: 'application/json',
+                        dataType: 'json',
+                    }).done(function (data) {
+                        resolve(data);
+                    }).fail(function (data) {
+                        reject(data);
+                    }).then(data => {
+                        return data;
+                    })
+                });
+                $form[0].reset();
+                if (addResult > 0) {
+                    await this.getCommentPage(this.album.albumId, 4, true);
+                    this.album.commentCount = addResult;
+                    alert('评论成功!');
+                } else {
+                    alert('系统错误,评论失败!');
+                }
+            },
+            getCommentPage: async function (songId, typeId, isRefresh) {
+                let url = '/comment/list';
+                let param = {
+                    pageSize: 10,
+                    pageNum: 1,
+                    resourceType: typeId,
+                    resourceId: songId
+                };
+                if (!isRefresh && this.commentPage != null && this.commentPage.hasNextPage) {
+                    param.pageNum = this.commentPage.pageNum + 1;
+                }
+                let query = await new Promise(function (resolve, reject) {
+                    $.get(url, param).done(function (data) {
+                        resolve(data);
+                    }).fail(function (data) {
+                        reject(data);
+                    }).then(data => {
+                        return data;
+                    })
+                });
+                for (let i = 0; i < query.list.length; i++) {
+                    await this.getReplyPage(query.list[i].commentId, false);
+                    this.formDivArray.push('#replyFormDiv' + query.list[i].commentId);
+                }
+                if (!isRefresh && this.commentPage.total) {
+                    console.log(this.commentPage);
+                    query.list = this.commentPage.list.concat(query.list);
+                }
+                this.commentPage = query;
+                if (isRefresh) {
+                    this.$forceUpdate();
+                }
+                return true;
+            },
+            getReplyPage: async function (commentId, isRefresh) {
+                let replyPage = this.replyPageMap.get(commentId);
+                let pageNum = 1;
+                if (!isRefresh && replyPage != null) {
+                    if (!replyPage.hasNextPage) {
+                        return false;
+                    }
+                    pageNum = replyPage.pageNum + 1;
+                }
+                let url = '/reply/' + commentId + '/' + pageNum;
+                let query = await new Promise(function (resolve, reject) {
+                    $.get(url).done(function (data) {
+                        resolve(data);
+                    }).fail(function (data) {
+                        reject(data);
+                    }).then(data => {
+                        return data;
+                    })
+                });
+                if (!isRefresh && replyPage != null) {
+                    query.list = replyPage.list.concat(query.list);
+                }
+                this.replyPageMap.set(commentId, query);
+                this.$forceUpdate();
+                return true;
+            },
+            addReply: async function (formIdPrefix, commentId, comment) {
+                let params = {};
+                let $form = $('#' + formIdPrefix + commentId);
+                $.each($form.serializeArray(), function (index, item) {
+                    params[item.name] = item.value;
+                });
+                if (params.replyContent.trim().length === 0) {
+                    alert('输入无效！');
+                    $form[0].reset();
+                    return false;
+                }
+                let url = '/reply';
+                params = JSON.stringify(params);
+                let addResult = await new Promise(function (resolve, reject) {
+                    $.ajax({
+                        url: url,
+                        data: params,
+                        type: 'PUT',
+                        contentType: 'application/json',
+                        dataType: 'json',
+                    }).done(function (data) {
+                        resolve(data);
+                    }).fail(function (data) {
+                        reject(data);
+                    }).then(data => {
+                        return data;
+                    })
+                });
+                $form[0].reset();
+                this.resetReplyForm();
+                if (addResult > 0) {
+                    await this.getReplyPage(commentId, true);
+                    comment.replyCount = addResult;
+                    alert('回复成功!');
+                } else {
+                    alert('系统错误,回复失败!');
+                }
+            },
+            showAddReplyForm: function (userNickname, parentReplyId, toUserId, toUserNickname) {
+                this.formDivArray.forEach(function (element) {
+                    $(element).collapse('hide');
+                });
+                this.formData.placeholder = '回复 @' + userNickname;
+                if (parentReplyId != null) {
+                    this.formData.parentReplyId = parentReplyId;
+                    this.formData.toUserId = toUserId;
+                    this.formData.toUserNickname = toUserNickname;
+                } else {
+                    this.resetReplyForm();
+                }
+            },
+            resetReplyForm: function () {
+                this.formData.parentReplyId = 0;
+                this.formData.toUserId = 0;
+                this.formData.toUserNickname = '';
+            },
+            clickLike: async function (resource, resourceType, resourceId) {
+                if (this.onlineUser == null) {
+                    return false;
+                }
+                let url = '/like';
+                let params = {
+                    userId: this.onlineUser.userId,
+                    userLikedId: resource.userId,
+                    resourceType: resourceType,
+                    resourceId: resourceId
+                };
+                let likeResult = await new Promise(function (resolve, reject) {
+                    $.ajax({
+                        url: url,
+                        data: JSON.stringify(params),
+                        type: 'PUT',
+                        contentType: 'application/json',
+                        dataType: 'json',
+                    }).done(function (data) {
+                        resolve(data);
+                    }).fail(function (data) {
+                        reject(data);
+                    }).then(data => {
+                        return data;
+                    })
+                });
+                if (likeResult > -1) {
+                    if (typeof (resource.likeCount) !== 'number') {
+                        resource.userLike = likeResult;
+                    } else {
+                        resource.likeCount = likeResult;
+                    }
+                    this.$forceUpdate();
+                } else {
+                    alert("服务器错误,点赞失败了!");
+                    return false;
+                }
+            },
+            playSong(songId) {
+                if (localStorage.getItem('isPlaying') !== 'true') {
+                    localStorage.setItem('newPlayer', 'true');
+                    window.open('/playMusic/newPlayer?songId=' + songId, '_blank');
+                    return;
+                }
+                localStorage.removeItem('newSongId');
+                localStorage.setItem('newSongId', '' + songId);
+            },
+            playSongList(songListId) {
+                if (localStorage.getItem('isPlaying') !== 'true') {
+                    localStorage.setItem('newPlayer', 'true');
+                    window.open('/playMusic/newPlayer?albumId=' + songListId, '_blank');
+                    return;
+                }
+                localStorage.removeItem('newAlbumId');
+                localStorage.setItem('newAlbumId', '' + songListId);
+            },
+        },
+
+        created() {
+            this.album = [[${album}]];
+            var _this = this;
+            $.post('/songList/showSongLists', null, function (data) {
+                _this.songLists = data;
+            }, "json");
+
+            this.onlineUser = [[${session.loginUser}]];
+            this.getCommentPage(this.album.albumId, 4, true);
+        }
+    })
+</script>
+
+</body>
+</html>

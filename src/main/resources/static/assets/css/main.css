@@ -1,0 +1,94 @@
+/*全局样式*/
+a :hover {
+    text-decoration: none !important;
+}
+
+/*颜色*/
+.color-gray {
+    color: #555555;
+}
+
+.back-gray {
+    background: rgba(0, 0, 0, 0.1) !important;
+}
+
+.back-red {
+    background: rgba(255, 0, 0, 0.1) !important;
+}
+
+.back-yellow {
+    background: rgba(255, 255, 0, 0.1) !important;
+}
+
+.back-purple {
+    background: rgba(80, 0, 80, 0.1) !important;
+}
+
+.back-dark-blue {
+    background: rgba(106, 149, 227, 0.1) !important;
+}
+
+.back-dark-green {
+    background: rgba(79, 185, 192, 0.1) !important;
+}
+
+.back-pink {
+    background: rgba(202, 77, 112, 0.1) !important;
+}
+
+.back-brown {
+    background: rgba(185, 103, 88, 0.1) !important;
+}
+
+@keyframes rotateZ {
+    0% {
+        transform: rotateZ(0deg);
+    }
+    100% {
+        transform: rotateZ(360deg);
+    }
+}
+
+#loginLogo {
+    width: 500px;
+    animation-name: rotateZ;
+    animation-duration: 60s;
+    animation-iteration-count: infinite;
+}
+
+.text-fixed-140 {
+    width: 140px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    /*兼容性*/
+    -webkit-text-overflow: ellipsis;
+}
+
+.pre-scrollable-550 {
+    max-height: 550px !important;
+    min-height: 540px !important;
+    overflow-y: scroll;
+}
+
+.pre-scrollable-350 {
+    max-height: 350px !important;
+    min-height: 340px !important;
+    overflow-y: scroll;
+}
+
+.max-height-300 {
+    max-height: 300px !important;
+    min-height: 290px !important;
+}
+
+.back-fill {
+    background-size: 100% 100%;
+    filter: blur(50px);
+    z-index: 0;
+}
+
+/*表格垂直居中*/
+.table tbody tr td {
+    vertical-align: middle;
+}

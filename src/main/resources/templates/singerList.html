@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-cn" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>DT云音乐-给您最差的音乐体验</title>
+    <link rel="shortcut icon" th:href="@{/assets/img/favicon.ico}"/>
+
+    <link th:href="@{/assets/dist/css/bootstrap.css}" rel="stylesheet">
+    <link th:href="@{/assets/css/main.css}" rel="stylesheet">
+
+</head>
+<body>
+<!--引入导航栏-->
+<div th:replace="~{common/topBar::topBar}"></div>
+
+<!--主容器-->
+<div class="container shadow-sm" id="exploreSingerDiv">
+    <br/>
+    <h3 class="text-center">歌手</h3>
+    <hr/>
+    <!--  分类  -->
+    <div>
+        <ul class="nav nav-pills" id="lang">
+            <li class="nav-item text-muted">
+                <span class="nav-link">语种</span>
+            </li>
+            <li class="nav-item">
+                <a :class="'nav-link ' +  language.all"
+                   @click="allLanguage" href="javascript:void(0)">全部</a>
+            </li>
+            <li class="nav-item">
+                <a :class="'nav-link ' +  language.zh" href="javascript:void(0)" @click="zhLanguage">华语</a>
+            </li>
+            <li class="nav-item">
+                <a :class="'nav-link ' +  language.jk" href="javascript:void(0)" @click="jkLanguage">日韩</a>
+            </li>
+            <li class="nav-item">
+                <a :class="'nav-link ' +  language.en" href="javascript:void(0)" @click="enLanguage">欧美</a>
+            </li>
+            <li class="nav-item">
+                <a :class="'nav-link ' +  language.others" href="javascript:void(0)" @click="otherLanguage">其他</a>
+            </li>
+        </ul>
+        <ul class="nav nav-pills" id="type">
+            <li class="nav-item text-muted">
+                <span class="nav-link">类别</span>
+            </li>
+            <li class="nav-item">
+                <a :class="'nav-link ' + type.all" href="javascript:void(0)" @click="allType">全部</a>
+            </li>
+            <li class="nav-item">
+                <a :class="'nav-link ' + type.male" href="javascript:void(0)" @click="maleType">男</a>
+            </li>
+            <li class="nav-item">
+                <a :class="'nav-link ' + type.female" href="javascript:void(0)" @click="femaleType">女</a>
+            </li>
+            <li class="nav-item">
+                <a :class="'nav-link ' + type.group" href="javascript:void(0)" @click="groupType">组合</a>
+            </li>
+        </ul>
+        <hr/>
+    </div>
+    <br/><br/>
+    <!--  列表  -->
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-6 col-md-3 text-center" v-for="singer in singers">
+                <a :href="'/singer/content/?id='+singer.singerId">
+                    <img class="rounded-circle" :src="singer.singerImg" alt=".."
+                         height="200px" width="200px">
+                </a>
+                <p></p>
+                <a :href="'/singer/content?id='" class="color-gray">
+                    <h5 class="card-title">{{singer.singerName}}</h5>
+                </a>
+                <br/>
+            </div>
+        </div>
+    </div>
+
+    <br/>
+    <div>
+        <nav aria-label="...">
+            <ul class="pagination justify-content-center">
+                <li class="page-item ">
+                    <a class="page-link" href="javascript:void(0)" @click="previousPage()">上一页</a>
+                </li>
+                <!--<li class="page-item"><a class="page-link" href="#">1</a></li>-->
+                <!--<li class="page-item active">-->
+                <!--<span class="page-link">-->
+                <!--2-->
+                <!--<span class="sr-only">{{currentPage}}</span>-->
+                <!--</span>-->
+                <!--</li>-->
+                <!--<li class="page-item"><a class="page-link" href="#">3</a></li>-->
+                <li class="page-item">
+                    <a class="page-link" href="javascript:void(0)" @click="goNext()">下一页</a>
+                </li>
+            </ul>
+        </nav>
+        <br/>
+    </div>
+
+</div>
+
+<!--引入页脚-->
+<div th:replace="~{common/footer::footer}"></div>
+
+<!--依赖的js-->
+<script src="/assets/js/jquery-3.5.1.js"></script>
+<script src="/assets/dist/js/bootstrap.js"></script>
+<script src="/assets/js/vue.js"></script>
+
+<!--自定义脚本-->
+
+</body>
+</html>
+<script th:inline="javascript">
+    let exploreSingerDiv = new Vue({
+        el: '#exploreSingerDiv',
+        data: {
+            currentPage: 1,
+            nextPage: 0,
+            limit: 2,
+            offset: 0,
+            totalPage: 0,
+            singerLanguage: '',
+            singerType: '',
+            singers: [],
+            languageZh: 'active',
+            language: {
+                all: 'active',
+                zh: '',
+                jk: '',
+                en: '',
+                others: ''
+            },
+            type: {
+                all: 'active',
+                male: '',
+                female: '',
+                group: ''
+            }
+        },
+        created() {
+            this.singers = [[${singers.list}]];
+            this.totalPage = [[${singers.total}]]
+        },
+        methods: {
+            allLanguage() {
+                // 显示
+                this.clearTags();
+                this.language.all = 'active';
+                // 搜索
+                this.singerLanguage = '';
+                this.clear();
+                this.refreshData();
+            },
+            zhLanguage() {
+                // 显示
+                this.clearTags();
+                this.language.zh = 'active';
+                // 搜索
+                this.singerLanguage = '华语';
+                this.clear();
+                this.refreshData();
+            },
+            jkLanguage() {
+                // 显示
+                this.clearTags();
+                this.language.jk = 'active';
+                // 搜索
+                this.singerLanguage = '日韩';
+                this.clear();
+                this.refreshData();
+            },
+            enLanguage() {
+                // 显示
+                this.clearTags();
+                this.language.en = 'active';
+                // 搜索
+                this.singerLanguage = '欧美';
+                this.clear();
+                this.refreshData();
+            },
+            otherLanguage() {
+                // 显示
+                this.clearTags();
+                this.language.others = 'active';
+                // 搜索
+                this.singerLanguage = '其他';
+                this.clear();
+                this.refreshData();
+            },
+            allType() {
+                // 显示
+                this.clearTypeTags();
+                this.type.all = 'active';
+                // 搜索
+                this.singerType = '';
+                this.clear();
+                this.refreshData();
+            },
+            maleType() {
+                // 显示
+                this.clearTypeTags();
+                this.type.male = 'active';
+                // 搜索
+                this.singerType = '男';
+                this.clear();
+                this.refreshData();
+            },
+            femaleType() {
+                // 显示
+                this.clearTypeTags();
+                this.type.female = 'active';
+                // 搜索
+                this.singerType = '女';
+                this.clear();
+                this.refreshData();
+            },
+            groupType() {
+                // 显示
+                this.clearTypeTags();
+                this.type.group = 'active';
+                // 搜索
+                this.singerType = '组合';
+                this.clear();
+                this.refreshData();
+            },
+            clearTags() {
+                this.language = {
+                    all: '',
+                    zh: '',
+                    jk: '',
+                    en: '',
+                    others: ''
+                };
+
+            },
+            clearTypeTags() {
+                this.type = {
+                    all: '',
+                    male: '',
+                    female: '',
+                    group: ''
+                }
+            },
+            refreshData: function () {
+                let _this = this;
+                let params = {
+                    limit: 2,
+                    offset: this.offset,
+                    singerLanguage: this.singerLanguage,
+                    singerType: this.singerType
+                }
+                $.get('/index/singerList', params, function (data) {
+                    console.log(data);
+                    _this.singers = data.list;
+                    _this.totalPage = data.total;
+                }, 'json')
+            },
+            goNext() {
+                let _this = this;
+                this.currentPage = this.currentPage + 1;
+                if(this.nextPage!=this.totalPage){
+                    this.nextPage = this.nextPage + this.limit;
+                }
+                let params = {
+                    limit: this.limit,
+                    offset: this.nextPage,
+                    singerLanguage: this.singerLanguage,
+                    singerType: this.singerType
+                }
+                $.get('/index/singerList', params, function (data) {
+                    console.log(data);
+                    _this.singers = data.list;
+                    _this.totalPage = data.total;
+                }, 'json')
+                //location.reload()
+            },
+            previousPage() {
+                let _this = this;
+                if (this.nextPage != 0) {
+                    this.nextPage = this.nextPage - this.limit;
+                    this.currentPage = this.currentPage - 1;
+                }
+                let params = {
+                    limit: this.limit,
+                    offset: this.nextPage,
+                    singerLanguage: this.singerLanguage,
+                    singerType: this.singerType
+                }
+                $.get('/index/singerList', params, function (data) {
+                    console.log(data);
+                    _this.singers = data.list;
+                    _this.totalPage = data.total;
+                }, 'json')
+                //location.reload()
+            },
+            clear() {
+                this.currentPage = 1,
+                    this.nextPage = 0,
+                    this.limit = 2,
+                    this.offset = 0
+            }
+
+        }
+    })
+</script>

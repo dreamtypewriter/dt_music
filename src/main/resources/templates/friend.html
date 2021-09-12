@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="zh-cn" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>DT云音乐-给您最差的音乐体验</title>
+    <link rel="shortcut icon" th:href="@{/assets/img/favicon.ico}"/>
+
+    <!-- Bootstrap core CSS -->
+    <link th:href="@{/assets/dist/css/bootstrap.css}" rel="stylesheet">
+    <link th:href="@{/assets/css/main.css}" rel="stylesheet">
+
+</head>
+<body>
+<!--引入导航栏-->
+<div th:replace="~{common/topBar::topBar}"></div>
+
+<!--主容器-->
+<div id="friendDiv" class="container shadow-sm">
+    <br/>
+    <div class="row">
+        <div class="col-6 text-right"><h3>动态</h3></div>
+        <div class="col-6 text-left">
+            <button class="btn btn-info" data-toggle="modal" data-target="#addShareModal">
+                <span class="glyphicon glyphicon-pencil"></span> 发动态
+            </button>
+        </div>
+    </div>
+
+    <!--动态列表-->
+    <div class="container" v-for="share in shareList">
+        <hr/>
+        <div class="row">
+            <div class="col-2 text-center">
+                <a :href="'/user/home/'+share.userId">
+                    <img :src="share.userAvatar" height="100px" width="100px" alt="头像">
+                </a>
+            </div>
+            <div class="col-10">
+                <p class="mt-0">
+                    <a :href="'/user/home/'+share.userId">{{share.userNickname}}</a> 分享{{share.resourceTypeName}}
+                </p>
+                <p class="text-sm-left text-muted">{{share.createTime}}</p>
+                <p style="font-size: 20px;word-wrap: break-word;word-break: break-all;"
+                   v-text="share.shareText">
+                </p>
+                <div class="container row bg-light">
+                    <div class="col-3 text-center m-auto">
+                        <a :href="share.resourceUrl">
+                            <img class="img-thumbnail" :src="share.resourceImgPath" alt="资源图" width="80px" height="80px">
+                        </a>
+                    </div>
+                    <div class="col-9">
+                        <br/>
+                        <a :href="share.resourceUrl">
+                            <h5>{{share.resourceName}}</h5>
+                        </a>
+                        <p class="text-muted">
+                            {{share.resourceDescription}}
+                        </p>
+                    </div>
+                </div>
+                <br/>
+                <div class="row">
+                    <div class="col-8"></div>
+                    <div class="col-2">
+                        <button class="btn btn-outline-danger btn-sm"
+                                @click="clickLike(share,5,share.shareId)">
+                            <span class="glyphicon glyphicon-heart"></span>
+                            赞 <span class="badge badge-light">{{share.likeCount}}</span>
+                        </button>
+                    </div>
+                    <div class="col-2">
+                        <a class="btn btn-outline-success btn-sm" data-toggle="collapse"
+                           :href="'#friendComment'+520+share.shareId">
+                            <span class="glyphicon glyphicon-send"></span>
+                            评论 <span class="badge badge-light">{{share.commentCount}}</span>
+                        </a>
+                    </div>
+                </div>
+                <br/>
+
+                <!--评论区-->
+                <div class="container bg-light ">
+                    <!--评论列表-->
+                    <div v-if="commentListMap.get(share.shareId).list.length">
+                        <br/>
+                        <div v-for="comment in commentListMap.get(share.shareId).list">
+                            <div class="row">
+                                <div class="col-2 text-center">
+                                    <a :href="'/user/home/'+comment.userId">
+                                        <img :src="comment.userAvatar" class="rounded-circle" height="50px" width="50px" alt="头像">
+                                    </a>
+                                </div>
+                                <div class="col-10">
+                                    <p class="mt-0" style="word-wrap: break-word;word-break: break-all;">
+                                        <a :href="'/user/home/'+comment.userId">{{comment.userNickname}}</a>:
+                                        <span class="text-lg-left"
+                                              v-if="comment.commentContent.length>0">
+                                            {{comment.commentContent}}
+                                        </span>
+                                    </p>
+                                    <p class="small text-muted">
+                                        {{comment.createTime}}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!--动态加载-->
+                        <div class="row">
+                            <div class="col-5">
+                                <hr/>
+                            </div>
+                            <div class="col-2 text-center">
+                                <a href="javascript:void(0)" class="color-gray"
+                                   @click="getCommentList(share.shareId,false)"
+                                   v-if="commentListMap.get(share.shareId).hasNextPage">
+                                    查看更多 <span class="glyphicon glyphicon-menu-down"></span>
+                                </a>
+                                <p class="text-center" v-else>
+                                    到底啦!
+                                </p>
+                            </div>
+                            <div class="col-5">
+                                <hr/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--新增评论-->
+                    <div class="collapse" :id="'friendComment'+520+share.shareId">
+                        <br/>
+                        <form :id="'addCommentForm'+share.shareId"
+                              @submit.prevent="addComment('addCommentForm',share.shareId,share)">
+                            <input hidden name="typeId" value="5">
+                            <input hidden name="resourceId" :value="share.shareId">
+                            <div class="form-group">
+                        <textarea class="form-control" :id="'addReply'+share.shareId" name="commentContent"
+                                  rows="3" placeholder="立刻评论吧~" maxlength="120" required></textarea>
+                            </div>
+                            <div class="text-right">
+                                限1-120字
+                                <span class="col-1"></span>
+                                <button type="submit" class="btn btn-info btn-sm">发表评论</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--动态加载-->
+    <br/>
+    <div class="container row" v-if="shareList.length">
+        <div class="col-5">
+            <hr/>
+        </div>
+        <div class="col-2 text-center">
+            <a href="javascript:void(0)" v-if="hasNextPage"
+               @click="loadMoreShares" class="color-gray">
+                查看更多 <span class="glyphicon glyphicon-menu-down"></span>
+            </a>
+            <p class="text-center" v-else>到底啦!</p>
+        </div>
+        <div class="col-5">
+            <hr/>
+        </div>
+    </div>
+    <div class="container row" v-else>
+        <div class="col-5">
+            <hr/>
+        </div>
+        <div class="col-2 text-center">
+            <h5>-_-# 空的!&emsp;<span class="glyphicon-triangle-right"></span></h5>
+        </div>
+        <div class="col-5">
+            <hr/>
+        </div>
+    </div>
+
+    <!--发动态模态框-->
+    <div class="modal fade" id="addShareModal" tabindex="-1" role="dialog" aria-labelledby="addShareModal" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-light text-black-50">
+                    <h5 class="modal-title ">分享</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="addShareForm" th:action="@{/share/add}" method="post">
+                        <div class="form-group">
+                            <label for="addShareText" class="sr-only"></label>
+                            <textarea class="form-control" id="addShareText" name="shareText" rows="3" placeholder="一起聊聊吧~"
+                                      maxlength="120" v-model="addShareText"
+                                      :onkeyup="addShareTextCount = 120 - addShareText.length"></textarea>
+                        </div>
+                        <input readonly class="form-control" v-model="addShareResourceInfo">
+                        <p class="text-right">剩余{{addShareTextCount}}字</p>
+                        <input type="hidden" name="typeId" v-model="addShareResourceType">
+                        <input type="hidden" name="resourceId" v-model="addShareResourceId">
+                    </form>
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <button class="input-group-text" @click="doSearch">
+                                <span class=" glyphicon glyphicon-search"></span>
+                            </button>
+                        </div>
+                        <input type="text" class="form-control" placeholder="搜索感兴趣的资源~"
+                               v-model="searchKeyword">
+                    </div>
+                    <hr/>
+                    <div class="w-100" v-show="isSearchDivVisible">
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="song-tab" data-toggle="tab" href="#song" role="tab" aria-controls="home"
+                                   aria-selected="true">单曲</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="singer-tab" data-toggle="tab" href="#singer" role="tab" aria-controls="profile"
+                                   aria-selected="false">歌手</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="songList-tab" data-toggle="tab" href="#songList" role="tab" aria-controls="contact"
+                                   aria-selected="false">歌单</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="album-tab" data-toggle="tab" href="#album" role="tab" aria-controls="contact"
+                                   aria-selected="false">专辑</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="tab-content" v-show="isSearchDivVisible">
+                        <div class="tab-pane fade show active" id="song" role="tabpanel" aria-labelledby="home-tab">
+                            <div class="list-group" v-if="searchSongs.length>0">
+                                <a href="javascript:void(0)" class="list-group-item list-group-item-action"
+                                   v-for="song in searchSongs"
+                                   @click="setShareResourceInfo(song.singer.singerName+'-'+song.songName,1,song.songId)">
+                                    {{song.singer.singerName + '-' + song.songName}}
+                                </a>
+                            </div>
+                            <div v-else>
+                                <br/>
+                                <p>没有找到~</p>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="singer" role="tabpanel" aria-labelledby="singer-tab">
+                            <div class="list-group" v-if="searchSingers.length>0">
+                                <a href="javascript:void(0)" class="list-group-item list-group-item-action"
+                                   @click="setShareResourceInfo(singer.singerName,2,singer.singerId)"
+                                   v-for="singer in searchSingers">
+                                    {{singer.singerName}}
+                                </a>
+                            </div>
+                            <div v-else>
+                                <br/>
+                                <p>没有找到~</p>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="songList" role="tabpanel" aria-labelledby="contact-tab">
+                            <div class="list-group" v-if="searchSongLists.length>0">
+                                <a href="javascript:void(0)" class="list-group-item list-group-item-action"
+                                   @click="setShareResourceInfo(songList.songListName+'-'+songList.user.userNickname,3,songList.songListId)"
+                                   v-for="songList in searchSongLists">
+                                    {{songList.songListName+'-'+songList.user.userNickname}}
+                                </a>
+                            </div>
+                            <div v-else>
+                                <br/>
+                                <p>没有找到~</p>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="album" role="tabpanel" aria-labelledby="contact-tab">
+                            <div class="list-group" v-if="searchAlbums.length>0">
+                                <a href="javascript:void(0)" class="list-group-item list-group-item-action"
+                                   @click="setShareResourceInfo(album.albumName+'-'+album.singer.singerName,4,album.albumId)"
+                                   v-for="album in searchAlbums">
+                                    {{album.albumName+'-'+album.singer.singerName}}
+                                </a>
+                            </div>
+                            <div v-else>
+                                <br/>
+                                <p>没有找到~</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" form="addShareForm" class="btn btn-info" :disabled="isPreventAdd">分享</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!--引入页脚-->
+<div th:replace="~{common/footer::footer}"></div>
+
+<!--依赖的js-->
+<script src="/assets/js/jquery-3.5.1.js"></script>
+<script src="/assets/dist/js/bootstrap.js"></script>
+<script src="/assets/js/vue.js"></script>
+
+<!--自定义脚本-->
+<script th:inline="javascript">
+    let friendDiv = new Vue({
+        el: '#friendDiv',
+        data: {
+            addShareText: '',
+            addShareResourceType: 0,
+            addShareResourceId: 0,
+            addShareResourceInfo: '添加要分享的音乐吧~',
+            isShareResourceOk: false,
+            isPreventAdd: true,
+            songs: [],
+            singers: [],
+            songLists: [],
+            albums: [],
+            shareList: [],
+            pageNum: 1,
+            hasNextPage: false,
+            commentListMap: new Map(),
+            searchKeyword: '',
+            isSearchDivVisible: false,
+
+            searchSongs: [],
+            searchSongLists: [],
+            searchSingers: [],
+            searchAlbums: [],
+
+            onlineUser: null,
+
+            addShareTextCount: 120,
+
+        },
+
+        methods: {
+            loadMoreShares: function () {
+                // console.log('尝试刷新');
+                if (this.hasNextPage) {
+                    this.pageNum++;
+                    this.getShareList();
+                }
+            },
+            getShareList: async function () {
+                let url = "/share/list";
+                let params = {
+                    pageSize: 5,
+                    pageNum: this.pageNum
+                }
+                // Promise实现同步
+                let pageObj = await new Promise(function (resolve, reject) {
+                    $.ajax({
+                        url: url,
+                        data: params,
+                    }).done(function (data) {
+                        resolve(data);
+                    }).fail(function (data) {
+                        reject(data);
+                    }).then(data => {
+                        return data;
+                    })
+                });
+                this.hasNextPage = pageObj.hasNextPage;
+                for (let i = 0; i < pageObj.list.length; i++) {
+                    await this.getCommentList(pageObj.list[i].shareId, false);
+                }
+                this.shareList = this.shareList.concat(pageObj.list);
+                return true;
+            },
+            addComment: async function (formPrefix, shareId, share) {
+                let data = {};
+                let _this = this;
+                let $form = $('#' + formPrefix + shareId);
+                $.each($form.serializeArray(), function (index, item) {
+                    data[item.name] = item.value;
+                });
+                if (data.commentContent.trim().length === 0) {
+                    alert('输入无效!');
+                    $form[0].reset();
+                    return false;
+                }
+                let url = '/comment/add';
+                data = JSON.stringify(data);
+                let addResult = await new Promise(function (resolve, reject) {
+                    $.ajax({
+                        url: url,
+                        data: data,
+                        type: 'post',
+                        contentType: 'application/json',
+                        dataType: 'json',
+                    }).done(function (data) {
+                        resolve(data);
+                    }).fail(function (data) {
+                        reject(data);
+                    }).then(data => {
+                        return data;
+                    })
+                });
+                $form[0].reset();
+                if (addResult > 0) {
+                    await _this.getCommentList(shareId, true);
+                    share.commentCount = addResult;
+                    alert("评论成功！");
+                } else {
+                    alert('系统错误,回复失败!');
+                }
+            },
+            setShareResourceInfo: function (resourceName, resourceType, resourceId) {
+                this.addShareResourceInfo = resourceName;
+                this.addShareResourceType = resourceType;
+                this.addShareResourceId = resourceId;
+                this.isShareResourceOk = true;
+            },
+            getCommentList: async function (shareId, isRefresh) {
+                let url = '/comment/list';
+                let param = {
+                    pageSize: 5,
+                    pageNum: 1,
+                    resourceType: 5,
+                    resourceId: shareId
+                };
+                let commentPage = this.commentListMap.get(shareId);
+                if (!isRefresh && commentPage != null) {
+                    if (!commentPage.hasNextPage) {
+                        return false;
+                    }
+                    param.pageNum = commentPage.pageNum + 1;
+                }
+                let pageObj = await new Promise(function (resolve, reject) {
+                    $.get(url, param).done(data => {
+                        resolve(data);
+                    }).fail(data => {
+                        reject(data);
+                    }).then(data => {
+                        return data;
+                    })
+                });
+                if (!isRefresh && commentPage != null) {
+                    pageObj.list = commentPage.list.concat(pageObj.list);
+                }
+                this.commentListMap.set(shareId, pageObj);
+                this.$forceUpdate();
+                return true;
+            },
+            doSearch() {
+                if (this.searchKeyword == null || this.searchKeyword.trim().length === 0) {
+                    return false;
+                }
+                this.doSearchSong();
+                this.doSearchSongList();
+                this.doSearchSinger();
+                this.doSearchAlbum();
+                this.isSearchDivVisible = this.searchKeyword.length > 0;
+            },
+            doSearchSong() {
+                let _this = this;
+                let url = '/search/song';
+                let param = {
+                    searchKeyword: this.searchKeyword,
+                    size: 5
+                }
+                $.get(url, param, function (data) {
+                    _this.searchSongs = data;
+                });
+            },
+            doSearchSongList() {
+                let _this = this;
+                let url = '/search/songList';
+                let param = {
+                    searchKeyword: this.searchKeyword,
+                    size: 5
+                }
+                $.get(url, param, function (data) {
+                    _this.searchSongLists = data;
+                });
+            },
+            doSearchSinger() {
+                let _this = this;
+                let url = '/search/singer';
+                let param = {
+                    searchKeyword: this.searchKeyword,
+                    size: 5
+                }
+                $.get(url, param, function (data) {
+                    _this.searchSingers = data;
+                });
+            },
+            doSearchAlbum() {
+                let _this = this;
+                let url = '/search/album';
+                let param = {
+                    searchKeyword: this.searchKeyword,
+                    size: 5
+                }
+                $.get(url, param, function (data) {
+                    _this.searchAlbums = data;
+                });
+            },
+            clickLike: async function (resource, resourceType, resourceId) {
+                if (this.onlineUser == null) {
+                    return false;
+                }
+                let url = '/like';
+                let params = {
+                    userId: this.onlineUser.userId,
+                    userLikedId: resource.userId,
+                    resourceType: resourceType,
+                    resourceId: resourceId
+                };
+                let likeResult = await new Promise(function (resolve, reject) {
+                    $.ajax({
+                        url: url,
+                        data: JSON.stringify(params),
+                        type: 'PUT',
+                        contentType: 'application/json',
+                        dataType: 'json',
+                    }).done(function (data) {
+                        resolve(data);
+                    }).fail(function (data) {
+                        reject(data);
+                    }).then(data => {
+                        return data;
+                    })
+                });
+                if (likeResult > -1) {
+                    if (typeof (resource.likeCount) !== 'number') {
+                        resource.userLike = likeResult;
+                    } else {
+                        resource.likeCount = likeResult;
+                    }
+                    this.$forceUpdate();
+                } else {
+                    alert("服务器错误,点赞失败了!");
+                    return false;
+                }
+            },
+        },
+        watch: {
+            addShareText(newText) {
+                this.isPreventAdd = !(this.isShareResourceOk && newText.length > 0);
+            },
+            isShareResourceOk(newValue) {
+                this.isPreventAdd = !(newValue && this.addShareText.length > 0);
+            }
+        },
+        created() {
+            this.getShareList();
+            this.onlineUser = [[${session.loginUser}]];
+        },
+    })
+
+</script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="zh-cn" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>DT云音乐-给您最差的音乐体验</title>
+    <link rel="shortcut icon" th:href="@{/assets/img/favicon.ico}"/>
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/4.5/examples/album/">
+
+    <!-- Bootstrap core CSS -->
+    <link th:href="@{/assets/dist/css/bootstrap.css}" rel="stylesheet">
+    <link th:href="@{/assets/css/main.css}" rel="stylesheet">
+
+    <style>
+        .topListDiv {
+            margin: 20px;
+        }
+    </style>
+    <!-- Custom styles for this template -->
+    <!--    <link href="album.css" rel="stylesheet">-->
+</head>
+<body>
+
+<div th:replace="~{common/topBar::topBar}"></div>
+
+<div class="container shadow-sm">
+    <br/>
+    <h3 class="text-center">云音乐TOP榜</h3>
+    <hr/>
+    <div class="row" id="topListDiv">
+        <div class="col-3 shadow-sm back-red">
+            <br/>
+            <h4>热歌排行榜</h4>
+            <br/>
+            <div class="media" v-for="song in songs">
+                <a :href="'/song/content?id='+song.songId">
+                    <img class="mr-3" :src="song.songImgPath" alt="..." height="60px">
+                </a>
+                <div class="media-body">
+                    <a :href="'/song/content?id='+song.songId" class="color-gray">
+                        {{song.songName}}
+                    </a>
+                    <a :href="'/singer/content?id='+song.singer.singerId">
+                        <p class="text-muted">{{song.singer.singerName}}</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-3 shadow-sm back-dark-blue">
+            <br/>
+            <h4>专辑排行榜</h4>
+            <br/>
+            <div class="media" v-for="album in albums">
+                <a :href="'/album/content?id='+album.albumId">
+                    <img class="mr-3" :src="album.albumImgPath" alt="..." height="60px">
+                </a>
+                <div class="media-body">
+                    <a :href="'/album/content?id='+album.albumId" class="color-gray">
+                        {{album.albumName}}
+                    </a>
+                    <a :href="'/singer/content?id='+album.singer.singerId">
+                        <p class="text-muted">{{album.singer.singerName}}</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-3 shadow-sm back-brown">
+            <br/>
+            <h4>热门歌单榜</h4>
+            <br/>
+            <div class="media" v-for="songList in songLists">
+                <a :href="'/songList/content?id='+songList.songListId">
+                    <img class="mr-3" :src="songList.songlistImg" alt="..." height="60px">
+                </a>
+                <div class="media-body">
+                    <a :href="'/songList/content?id='+songList.songListId" class="color-gray">
+                        {{songList.songListName}}
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-3 shadow-sm back-dark-green">
+            <br/>
+            <h4>歌手排行榜</h4>
+            <br/>
+            <div class="media" v-for="singer in singers">
+                <a :href="'/singer/content?id='+singer.singerId" class="color-gray">
+                    <img class="mr-3" :src="singer.singerImg" alt="..." height="60px">
+                </a>
+                <div class="media-body">
+                    <a :href="'/singer/content?id='+singer.singerId" class="color-gray">
+                        {{singer.singerName}}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{common/footer::footer}"></div>
+
+<script src="/assets/js/jquery-3.5.1.js"></script>
+<script src="/assets/dist/js/bootstrap.js"></script>
+<script src="/assets/js/vue.js"></script>
+
+<script>
+    let topListDiv = new Vue({
+        el: '#topListDiv',
+        data: {
+            albums: [],
+            songs: [],
+            songLists: [],
+            singers: []
+        },
+        created() {
+            let _this=this;
+            $.get('/song/listTopSong',null,function (data) {
+                console.log(data)
+                _this.songs = data;
+            },"json")
+
+            $.get('/songList/findTopSongList',null,function (data) {
+                console.log(data)
+                _this.songLists = data;
+            },"json")
+
+            $.get('/album/topAlbum',null,function (data) {
+                console.log(data)
+                _this.albums = data;
+            },"json")
+
+            $.get('/singer/listTopSingers',null,function (data) {
+                console.log(data)
+                _this.singers = data;
+            },"json")
+        },
+    })
+
+</script>
+
+</body>
+</html>

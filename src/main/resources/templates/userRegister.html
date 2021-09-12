@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-cn" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>DT云音乐-给您最差的音乐体验</title>
+    <link rel="shortcut icon" th:href="@{/assets/img/favicon.ico}"/>
+
+    <!-- 引入CSS -->
+    <link th:href="@{/assets/dist/css/bootstrap.css}" rel="stylesheet">
+    <link th:href="@{/assets/css/main.css}" rel="stylesheet">
+
+</head>
+<body>
+<!--引入导航栏-->
+<div th:replace="~{common/topBar::topBar}"></div>
+
+<!--主容器-->
+<div class="container">
+    <br/>
+    <div class="row align-items-center h-75">
+        <div class="col-6 text-center m-auto">
+            <img id="loginLogo" class="rounded-circle" th:src="@{/assets/img/loginLogo.png}" alt="logo图片">
+        </div>
+        <div class="col-6">
+            <form method="post" th:action="@{/user/insert}">
+                <label>
+                    <input hidden name="method" value="userLogin">
+                </label>
+                <h3>用户注册</h3>
+                <br/>
+                <div class="form-group">
+                    <label for="registerPhone">手机号</label>
+                    <input type="text" class="form-control" id="registerPhone" name="userPhone" required
+                           placeholder="输入手机号">
+                    <small id="phoneInfo" class="form-text text-danger"></small>
+                    <span th:text="${phoneError}" style="color: red" th:if="${!#strings.isEmpty(phoneError)}"></span>
+                </div>
+                <div class="form-group">
+                    <label for="registerName">用户昵称</label>
+                    <input type="text" class="form-control" id="registerName" name="userNickname" required
+                           placeholder="输入用户昵称">
+                    <small id="nameInfo" class="form-text text-danger"></small>
+                    <span th:text="${nameError}" style="color: red" th:if="${!#strings.isEmpty(nameError)}"></span>
+                </div>
+                <div class="form-group">
+                    <label for="registerPwd">密码</label>
+                    <input type="password" class="form-control" id="registerPwd" name="userPassword" required
+                           placeholder="输入密码">
+                    <small id="pwdInfo" class="form-text text-danger"></small>
+                </div>
+
+                <br/>
+                <a class="btn btn-outline-dark" th:href="@{/user/login}">返回登录界面</a>
+                <span class="col-1"></span>
+                <button type="submit" class="btn btn-primary">注册</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!--引入页脚-->
+<div th:replace="~{common/footer::footer}"></div>
+
+<!--依赖的js-->
+<script th:src="@{/assets/js/jquery-3.5.1.js}"></script>
+<script th:src="@{/assets/dist/js/bootstrap.js}"></script>
+<script th:src="@{/assets/js/vue.js}"></script>
+
+<!--自定义脚本-->
+<script>
+
+</script>
+</body>
+</html>

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-cn" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>DT云音乐-给您最差的音乐体验</title>
+    <link rel="shortcut icon" th:href="@{/assets/img/favicon.ico}"/>
+
+    <link th:href="@{/assets/dist/css/bootstrap.css}" rel="stylesheet">
+    <link th:href="@{/assets/css/main.css}" rel="stylesheet">
+</head>
+<body>
+<!--引入导航栏-->
+<div th:replace="~{common/topBar::topBar}"></div>
+
+<!--主容器-->
+<div class="container shadow-sm" id="singerContentDiv">
+    <br/>
+    <!--  歌手头信息  -->
+    <div class="container row">
+        <div class="col-4 text-center">
+            <img class="img-thumbnail" :src="singer.singerImg" alt=".." width="200px" height="200px">
+        </div>
+        <div class="col-8">
+            <h3>
+                {{singer.singerName}}
+            </h3>
+            <p class="text-muted">{{singer.singerNickname}}</p>
+            <p>
+                <button class="btn btn-info"
+                        @click="playSongList(singer.singerId)"
+                        v-if="singer.songs.length>0">
+                    <span class="glyphicon glyphicon-play"></span> 播放热门歌曲
+                </button>
+                <button v-show="ok" class="btn btn-danger"
+                        @click="collectSinger(singer.singerId)"
+                        th:disabled="${session.loginUser == null}">
+                    <span class="glyphicon glyphicon-heart"></span> 收藏
+                    <span class="badge badge-danger">{{singer.collectionCount}}</span>
+                </button>
+                <button v-show="ok2" class="btn btn-danger"
+                        @click="delCollectedSinger(singer.singerId)"
+                        th:disabled="${session.loginUser == null}">
+                    <span class="glyphicon glyphicon-heart"></span> 取消收藏
+                    <span class="badge badge-danger">{{singer.collectionCount}}</span>
+                </button>
+            </p>
+            <p>
+                简介:&nbsp;
+                {{singer.singerDescription}}
+            </p>
+        </div>
+        <hr/>
+    </div>
+    <!--  歌曲和专辑  -->
+    <div class="container">
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="popSongs-tab" data-toggle="tab" href="#popSongs" role="tab" aria-controls="home"
+                   aria-selected="true">热门歌曲</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="albums-tab" data-toggle="tab" href="#albums" role="tab" aria-controls="profile"
+                   aria-selected="false">所有专辑</a>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="myTabContent">
+            <!--热门歌曲列表-->
+            <div class="tab-pane fade show active" id="popSongs" role="tabpanel" aria-labelledby="home-tab">
+                <br/>
+                <table class="table">
+                    <thead class="thead-light">
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">歌曲</th>
+                        <th scope="col">歌手</th>
+                        <th scope="col">时长</th>
+                        <th scope="col">专辑</th>
+                        <th scope="col">操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr v-for="(s,index) in singer.songs">
+                        <td>{{index+1}}</td>
+                        <td><a :href="'/song/content?id='+s.songId">{{s.songName}}</a></td>
+                        <td><a>{{singer.singerName}}</a></td>
+                        <td>{{s.songLength}}</td>
+                        <td><a :href="'/album/content?id='+s.albumDto.albumId">{{s.albumDto.albumName}}</a></td>
+                        <td>
+                            <button class="btn btn-outline-info btn-sm"
+                                    @click="playSong(s.songId)">
+                                <span class="glyphicon glyphicon-play"></span>
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm"
+                                    @click="showSongListModal(s.songId)" data-toggle="modal"
+                                    data-target="#collectSongModal" th:disabled="${session.loginUser == null}">
+                                <span class="glyphicon glyphicon-heart"></span>
+                            </button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <br/>
+            </div>
+            <!--专辑列表-->
+            <div class="tab-pane fade" id="albums" role="tabpanel" aria-labelledby="profile-tab">
+                <br/>
+                <div class="row">
+                    <div class="col-sm-6 col-md-2" v-for="ad in singer.albums">
+                        <div class="card">
+                            <a :href="'/album/content?id='+ad.albumId">
+                                <!--<img class="card-img-top" src="assets/img/sample.jpg" alt="..">-->
+                                <img class="card-img-top" :src="ad.albumImgPath" alt="..">
+                            </a>
+                            <div class="card-body">
+                                <a :href="'/album/content?id='+ad.albumId">
+                                    <h5 class="card-title">{{ad.albumName}}</h5>
+                                </a>
+                                <h6 class="card-subtitle text-muted">{{ad.releaseDate}}</h6>
+                            </div>
+                        </div>
+                        <br/>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--收藏歌曲模态框-->
+    <div class="modal fade" id="collectSongModal" tabindex="-1" role="dialog" aria-labelledby="collectSongModal" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <form id="collectSongForm" @submit.prevent="collectSong">
+                    <div class="modal-header bg-light text-black-50">
+                        <h5 class="modal-title ">收藏歌曲</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="nav flex-column nav-tabs">
+                            <label>选择歌单</label>
+                        </div>
+                        <br/>
+                        <div class="container collapse show nav flex-column">
+                            <input type="hidden" name="songId" v-model="singer.songs.songId">
+                            <div class="form-group">
+                                <div v-for="s in songLists">
+                                    <div class="row">
+                                        <div class="col-3 text-center m-auto">
+                                            <img :src="s.songlistImg" alt=".." width="60px" height="60px">
+                                        </div>
+                                        <div class="col-5">
+                                            <p>{{s.songListName}}</p>
+                                        </div>
+                                        <div class="col-4">
+                                            <input type="radio" name="songListId" v-model="selectedListId"
+                                                   :value="s.songListId"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <input type="submit" value="收藏" class="btn btn-info"></input>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--引入页脚-->
+<div th:replace="~{common/footer::footer}"></div>
+
+<!--依赖的js-->
+<script src="/assets/js/jquery-3.5.1.js"></script>
+<script src="/assets/dist/js/bootstrap.js"></script>
+<script src="/assets/js/vue.js"></script>
+
+<!--自定义脚本-->
+<script th:inline="javascript">
+
+    let singerContentDiv = new Vue({
+        el: '#singerContentDiv',
+        data: {
+            singer: {},
+            songLists: {},
+            songId: 0,
+            selectedListId: 0,
+            onlineUser: null,
+            ok: true,
+            ok2: false
+        },
+        methods: {
+            collectSinger: function (id) {
+                var _this = this;
+                $.post('/collection/isCollectSinger', "singerId=" + id, function (data) {
+                    if (data == 1) {
+                        $.post('/collection/collectSinger', "singerId=" + id, function (data) {
+                            if (data == 1) {
+                                alert("收藏成功!");
+                                _this.ok = !_this.ok;
+                                _this.ok2 = !_this.ok2;
+                                _this.singer.collectionCount = _this.singer.collectionCount + 1;
+                            } else {
+                                alert("收藏失败!")
+                            }
+                        }, "json");
+                    } else {
+                        alert("该歌手已被收藏!")
+                    }
+                })
+            },
+            hideCollectedsinger: function () {
+                var _this = this;
+                var sid = this.singer.singerId;
+                $.post('/collection/isCollectSongListId', "singerId=" + sid, function (data) {
+                    if (data == 1) {
+                        _this.ok = !_this.ok;
+                        _this.ok2 = !_this.ok2;
+                    }
+                }, "json");
+            },
+            delCollectedSinger: function (id) {
+                var _this = this;
+                $.post('/collection/delCollectedSinger', "singerId=" + id, function (data) {
+                    if (data == 1) {
+                        alert("取消成功!");
+                        _this.ok = !_this.ok;
+                        _this.ok2 = !_this.ok2;
+                        _this.singer.collectionCount = _this.singer.collectionCount - 1;
+                    } else {
+                        alert("取消失败!")
+                    }
+                }, "json");
+            },
+
+            showSongListModal: function (id) {
+                this.songId = id;
+            },
+            collectSong: function (id) {
+                var slId = this.selectedListId;
+                var sId = this.songId;
+                if (slId != 0) {
+                    $.post('/collection/isCollectSong', {"songListId": slId, "songId": sId}, function (data) {
+                        if (data == 1) {
+                            $.post('/collection/collectSong', {"songListId": slId, "songId": sId}, function (data) {
+                                if (data == 1) {
+                                    alert("收藏成功!");
+                                    location.reload();
+                                } else {
+                                    alert("收藏失败!")
+                                }
+                            }, "json");
+                        } else {
+                            alert("该歌曲已被收藏!")
+                        }
+                    }, "json")
+                } else {
+                    alert("必须选择一个歌单!");
+                }
+            },
+
+            playSong(songId) {
+                if (localStorage.getItem('isPlaying') !== 'true') {
+                    localStorage.setItem('newPlayer', 'true');
+                    window.open('/playMusic/newPlayer?songId=' + songId, '_blank');
+                    return;
+                }
+                localStorage.removeItem('newSongId');
+                localStorage.setItem('newSongId', '' + songId);
+            },
+            playSongList(songListId) {
+                if (localStorage.getItem('isPlaying') !== 'true') {
+                    localStorage.setItem('newPlayer', 'true');
+                    window.open('/playMusic/newPlayer?singerId=' + songListId, '_blank');
+                    return;
+                }
+                localStorage.removeItem('newSingerId');
+                localStorage.setItem('newSingerId', '' + songListId);
+            },
+        },
+        created() {
+            this.singer = [[${singer}]];
+            var _this = this;
+            $.post('/songList/showSongLists', null, function (data) {
+                _this.songLists = data;
+            }, "json");
+
+            var sid = this.singer.singerId;
+            $.post('/collection/isCollectSingerId', "singerId=" + sid, function (data) {
+                if (data == 1) {
+                    _this.ok = false;
+                    _this.ok2 = true;
+                } else {
+                    _this.ok = true;
+                    _this.ok2 = false;
+                }
+            }, "json");
+
+            this.onlineUser = [[${session.loginUser}]];
+        }
+    })
+</script>
+
+</body>
+</html>

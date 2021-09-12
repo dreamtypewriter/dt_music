@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div class="container col-3 nav flex-column nav-tabs shadow-sm " th:fragment="myMusicLeftBar">
+    <br/>
+    <div class="nav flex-column nav-tabs">
+        <a class="nav-link active" href="/myMusic/singerList">
+            我的歌手
+        </a>
+    </div>
+    <br/>
+    <div class="nav flex-column nav-tabs">
+        <a class="nav-link active" data-toggle="collapse" href="#createdSongListDiv">
+            创建的歌单&emsp;<button class="btn btn-info btn-sm" onclick="testFun(e)">新增</button>
+        </a>
+    </div>
+    <br/>
+    <div class="container collapse show nav flex-column" id="createdSongListDiv">
+        <a class="nav-link" href="/myMusic/playList?id=1" v-for="count in 5">
+            <div class="row">
+                <div class="col-3 text-center m-auto">
+                    <img th:src="@{/assets/img/sample.jpg}" alt=".." width="60px" height="60px">
+                </div>
+                <div class="col-9">
+                    <p>歌单名字</p>
+                    <p class="text-muted">100首</p>
+                </div>
+            </div>
+        </a>
+    </div>
+    <!--            -->
+    <div class="nav flex-column nav-tabs">
+        <a class="nav-link active" data-toggle="collapse" href="#collectedSongListDiv">
+            收藏的歌单
+        </a>
+    </div>
+    <br/>
+    <div class="container collapse show nav flex-column" id="collectedSongListDiv">
+        <div v-for="count in 5">
+            <a class="nav-link" href="/myMusic/playList?id=1" >
+                <div class="row">
+                    <div class="col-3 text-center m-auto">
+                        <img th:src="@{/assets/img/sample.jpg}" alt=".." width="60px" height="60px">
+                    </div>
+                    <div class="col-9">
+                        <p v-for="sl in songLists">
+                        <p>歌单名字{{sl.songListName}}</p>
+                        <p class="text-muted">{{sl.songCount}}首&emsp;By&emsp; {{sl.userNickName}}</p>
+                        </p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        function testFun(e) {
+            alert(111);
+            e.preventDefault();
+            return false;
+        }
+    </script>
+</div>
+
+</body>
+</html>

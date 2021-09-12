@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.dtmusic.api.mapper.FollowMapper">
+    <resultMap id="BaseResultMap" type="cn.dtmusic.api.entity.Follow">
+        <result column="user_id" jdbcType="INTEGER" property="userId"/>
+        <result column="follow_user_id" jdbcType="INTEGER" property="followUserId"/>
+        <result column="follow_status" jdbcType="TINYINT" property="followStatus"/>
+    </resultMap>
+    <!--type是返回值类型-->
+    <resultMap id="FollowUserMapper" type="cn.dtmusic.api.entity.User">
+        <id column="user_id" jdbcType="INTEGER" property="userId" />
+        <result column="user_nickname" jdbcType="VARCHAR" property="userNickname" />
+        <result column="user_avatar" jdbcType="VARCHAR" property="userAvatar" />
+
+        <result column="user_introduce" jdbcType="VARCHAR" property="userIntroduce" />
+        <result column="followed_number" jdbcType="INTEGER" property="followedNumber" />
+        <result column="fans_number" jdbcType="INTEGER" property="fansNumber" />
+        <result column="message_number" jdbcType="INTEGER" property="messageNumber" />
+    </resultMap>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+    select user_id, follow_user_id, follow_status
+    from t_follow
+  </select>
+
+    <!--根据一个别的用户id查询当前登录人是否关注该用户-->
+    <!--获取两个用户之间的关注关系-->
+    <select id="isFollowByUserId" resultType="BYTE">
+    select follow_status from t_follow where user_id = #{userId} and follow_user_id =#{followUserId}
+  </select>
+
+    <!--通过一个用户的id查询出他的关注列表-->
+    <!--改善多表查询-->
+    <select id="queryFollowList" resultMap="FollowUserMapper">
+      select tu.* from t_follow tf left join t_user tu on tf.follow_user_id = tu.user_id where tf.user_id = #{userId}
+  </select>
+    <!--通过一个用户的id查询出他的粉丝列表-->
+    <select id="queryFansList" resultMap="FollowUserMapper">
+      select tu.* from t_follow tf left join t_user tu on tf.user_id = tu.user_id where tf.follow_user_id =#{userId}
+  </select>
+
+    <!--修改用户关注：添加关注-->
+    <insert id="insert" parameterType="INTEGER">
+    insert into t_follow (user_id, follow_user_id)
+    values (#{userId,jdbcType=INTEGER}, #{followUserId,jdbcType=INTEGER})
+  </insert>
+    <!--修改用户关注：取消关注-->
+    <delete id="deleteFollow" parameterType="INTEGER">
+        delete from t_follow where user_id = #{userId} and follow_user_id =#{followUserId}
+    </delete>
+</mapper>

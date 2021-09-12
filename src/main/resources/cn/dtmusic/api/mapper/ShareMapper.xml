@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.dtmusic.api.mapper.ShareMapper">
+
+    <resultMap id="BaseResultMap" type="cn.dtmusic.api.entity.Share">
+        <id column="share_id" jdbcType="INTEGER" property="shareId"/>
+        <result column="resource_id" jdbcType="INTEGER" property="resourceId"/>
+        <result column="user_id" jdbcType="INTEGER" property="userId"/>
+        <result column="user_nickname" jdbcType="VARCHAR" property="userNickname"/>
+        <result column="user_avatar" jdbcType="VARCHAR" property="userAvatar"/>
+        <result column="share_text" jdbcType="VARCHAR" property="shareText"/>
+        <result column="type_id" jdbcType="TINYINT" property="typeId"/>
+        <result column="resource_type" jdbcType="TINYINT" property="resourceType"/>
+        <result column="like_count" jdbcType="INTEGER" property="likeCount"/>
+        <result column="forward_count" jdbcType="INTEGER" property="forwardCount"/>
+        <result column="comment_count" jdbcType="INTEGER" property="commentCount"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="modify_time" jdbcType="TIMESTAMP" property="modifyTime"/>
+        <result column="share_status" jdbcType="TINYINT" property="shareStatus"/>
+    </resultMap>
+
+    <resultMap id="dtoResultMap" type="cn.dtmusic.api.dto.ShareDto">
+        <id column="share_id" jdbcType="INTEGER" property="shareId"/>
+        <result column="user_id" jdbcType="INTEGER" property="userId"/>
+        <result column="user_nickname" jdbcType="VARCHAR" property="userNickname"/>
+        <result column="user_avatar" jdbcType="VARCHAR" property="userAvatar"/>
+        <result column="share_text" jdbcType="VARCHAR" property="shareText"/>
+        <result column="type_id" jdbcType="TINYINT" property="typeId"/>
+        <result column="resource_id" jdbcType="INTEGER" property="resourceId"/>
+        <result column="like_count" jdbcType="INTEGER" property="likeCount"/>
+        <result column="forward_count" jdbcType="INTEGER" property="forwardCount"/>
+        <result column="comment_count" jdbcType="INTEGER" property="commentCount"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <!--dto部分-->
+        <result column="resource_img_path" jdbcType="TIMESTAMP" property="resourceImgPath"/>
+        <result column="resource_name" jdbcType="TIMESTAMP" property="resourceName"/>
+        <result column="resurce_description" jdbcType="TIMESTAMP" property="resourceDescription"/>
+    </resultMap>
+
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        delete
+        from t_share
+        where share_id = #{shareId,jdbcType=INTEGER}
+    </delete>
+
+    <insert id="insert" parameterType="cn.dtmusic.api.entity.Share">
+        insert into t_share (user_id, user_nickname,
+                             user_avatar, share_text, type_id,
+                             resource_id)
+        values (#{userId,jdbcType=INTEGER}, #{userNickname,jdbcType=VARCHAR},
+                #{userAvatar,jdbcType=VARCHAR}, #{shareText,jdbcType=VARCHAR}, #{typeId,jdbcType=TINYINT},
+                #{resourceId,jdbcType=INTEGER})
+    </insert>
+
+    <update id="updateByPrimaryKey" parameterType="cn.dtmusic.api.entity.Share">
+        update t_share
+        set user_id       = #{userId,jdbcType=INTEGER},
+            user_nickname = #{userNickname,jdbcType=VARCHAR},
+            user_avatar   = #{userAvatar,jdbcType=VARCHAR},
+            share_text    = #{shareText,jdbcType=VARCHAR},
+            resource_type = #{resourceType,jdbcType=TINYINT},
+            resource_id   = #{resourceId,jdbcType=INTEGER},
+            like_count    = #{likeCount,jdbcType=INTEGER},
+            forward_count = #{forwardCount,jdbcType=INTEGER},
+            comment_count = #{commentCount,jdbcType=INTEGER},
+            create_time   = #{createTime,jdbcType=TIMESTAMP},
+            modify_time   = #{modifyTime,jdbcType=TIMESTAMP},
+            share_status  = #{shareStatus,jdbcType=TINYINT}
+        where share_id = #{shareId,jdbcType=INTEGER}
+    </update>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select *
+        from t_share
+        where share_id = #{shareId,jdbcType=INTEGER}
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        select *
+        from t_share
+    </select>
+
+    <update id="disableById" parameterType="int">
+        update t_share
+        set share_status = 0
+        where share_id = #{id}
+    </update>
+
+    <select id="selectShareDtoList" resultMap="dtoResultMap" parameterType="list">
+        select temp.*
+        from (select t_share.share_id,
+        t_share.user_id,
+        t_share.user_nickname,
+        t_share.user_avatar,
+        t_share.share_text,
+        t_share.type_id,
+        t_share.resource_id,
+        t_share.like_count,
+        t_share.forward_count,
+        t_share.comment_count,
+        t_share.create_time,
+        t_song.song_img_path as resource_img_path,
+        t_song.song_name as resource_name,
+        t_song.song_length as resurce_description
+        from t_share
+        left join t_song
+        on t_share.resource_id = t_song.song_id
+        where t_share.user_id in
+        <foreach item="id" index="i" collection="list" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        and t_share.type_id = t_song.resource_type
+        and t_share.share_status = 1
+        union all
+        select t_share.share_id,
+        t_share.user_id,
+        t_share.user_nickname,
+        t_share.user_avatar,
+        t_share.share_text,
+        t_share.type_id,
+        t_share.resource_id,
+        t_share.like_count,
+        t_share.forward_count,
+        t_share.comment_count,
+        t_share.create_time,
+        t_singer.singer_img as resource_img_path,
+        t_singer.singer_name as resource_name,
+        t_singer.singer_language as resurce_description
+        from t_share
+        left join t_singer on t_share.resource_id = t_singer.singer_id
+        where t_share.user_id in
+        <foreach item="id" index="i" collection="list" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        and t_share.type_id = t_singer.resource_type
+        and t_share.share_status = 1
+        union all
+        select t_share.share_id,
+        t_share.user_id,
+        t_share.user_nickname,
+        t_share.user_avatar,
+        t_share.share_text,
+        t_share.type_id,
+        t_share.resource_id,
+        t_share.like_count,
+        t_share.forward_count,
+        t_share.comment_count,
+        t_share.create_time,
+        t_song_list.list_img_path as resource_img_path,
+        t_song_list.song_list_name as resource_name,
+        t_song_list.user_nickname as resurce_description
+        from t_share
+        left join t_song_list on t_share.resource_id = t_song_list.song_list_id
+        where t_share.user_id in
+        <foreach item="id" index="i" collection="list" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        and t_share.type_id = t_song_list.resource_type
+        and t_share.share_status = 1
+        union all
+        select t_share.share_id,
+        t_share.user_id,
+        t_share.user_nickname,
+        t_share.user_avatar,
+        t_share.share_text,
+        t_share.type_id,
+        t_share.resource_id,
+        t_share.like_count,
+        t_share.forward_count,
+        t_share.comment_count,
+        t_share.create_time,
+        t_album.album_img_path as resource_img_path,
+        t_album.album_name as resource_name,
+        t_album.album_language as resurce_description
+        from t_share
+        left join t_album
+        on t_share.resource_id = t_album.album_id
+        where t_share.user_id in
+        <foreach item="id" index="i" collection="list" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        and t_share.type_id = t_album.resource_type
+        and t_share.share_status = 1) as temp
+        order by temp.create_time desc
+    </select>
+
+    <update id="updateShareCount">
+        update t_user
+        set t_user.message_number = t_user.message_number + 1
+        where user_id = #{userId}
+    </update>
+</mapper>

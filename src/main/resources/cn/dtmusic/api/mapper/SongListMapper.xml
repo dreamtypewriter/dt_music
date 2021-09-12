@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.dtmusic.api.mapper.SongListMapper">
+
+    <resultMap id="BaseResultMap" type="cn.dtmusic.api.entity.SongList">
+        <id column="song_list_id" jdbcType="INTEGER" property="songListId"/>
+        <result column="song_list_name" jdbcType="VARCHAR" property="songListName"/>
+        <result column="user_id" jdbcType="INTEGER" property="userId"/>
+        <result column="user_avatar" jdbcType="VARCHAR" property="userAvatar"/>
+        <result column="user_nickname" jdbcType="VARCHAR" property="userNickname"/>
+        <result column="list_img_path" jdbcType="VARCHAR" property="songlistImg"/>
+        <result column="play_count" jdbcType="INTEGER" property="playCount"/>
+        <result column="comment_count" jdbcType="INTEGER" property="commentCount"/>
+        <result column="collection_count" jdbcType="INTEGER" property="collectionCount"/>
+        <result column="song_count" jdbcType="INTEGER" property="songCount"/>
+        <result column="song_list_description" jdbcType="VARCHAR" property="songListDescription"/>
+        <result column="create_date" jdbcType="TIMESTAMP" property="createDate"/>
+        <result column="modify_date" jdbcType="TIMESTAMP" property="modifyDate"/>
+        <result column="song_list_status" jdbcType="INTEGER" property="songListStatus"/>
+
+
+        <association property="user" javaType="cn.dtmusic.api.entity.User">
+            <id column="user_id" jdbcType="INTEGER" property="userId"/>
+            <result column="user_nickname" jdbcType="VARCHAR" property="userNickname"/>
+            <result column="user_avatar" jdbcType="VARCHAR" property="userAvatar"/>
+        </association>
+
+        <collection property="category" ofType="cn.dtmusic.api.entity.Category">
+            <id column="category_id" jdbcType="INTEGER" property="categoryId"/>
+            <result column="category_name" jdbcType="VARCHAR" property="categoryName"/>
+        </collection>
+
+        <collection property="song" ofType="cn.dtmusic.api.dto.SongDto">
+            <id column="song_id" jdbcType="INTEGER" property="songId"/>
+            <result column="song_name" jdbcType="VARCHAR" property="songName"/>
+            <result column="song_length" jdbcType="VARCHAR" property="songLength"/>
+            <association property="singer" javaType="cn.dtmusic.api.entity.Singer">
+                <id property="singerId" column="singer_id"></id>
+                <result column="singer_name" jdbcType="VARCHAR" property="singerName"/>
+            </association>
+            <association property="albumDto" javaType="cn.dtmusic.api.dto.AlbumDto">
+                <id column="album_id" jdbcType="INTEGER" property="albumId"/>
+                <result column="album_name" jdbcType="VARCHAR" property="albumName"/>
+            </association>
+        </collection>
+    </resultMap>
+
+    <delete id="deleteByPrimaryKey" parameterType="map">
+        delete
+        from t_song_list
+        where song_list_id = #{songListId,jdbcType=INTEGER}
+    </delete>
+
+    <insert id="insert" parameterType="cn.dtmusic.api.entity.SongList"
+            useGeneratedKeys="true" keyColumn="song_list_id" keyProperty="songListId">
+        insert into t_song_list (song_list_name, user_id,
+                                 user_avatar, user_nickname, song_list_description)
+        values (#{songListName,jdbcType=VARCHAR}, #{userId,jdbcType=INTEGER},
+                #{userAvatar,jdbcType=VARCHAR}, #{userNickname,jdbcType=VARCHAR},
+                #{songListDescription,jdbcType=VARCHAR})
+    </insert>
+
+    <update id="updateByPrimaryKey" parameterType="cn.dtmusic.api.entity.SongList">
+        update t_song_list
+        set song_list_name        = #{songListName,jdbcType=VARCHAR},
+            list_img_path         = #{songlistImg,jdbcType=VARCHAR},
+            song_list_description = #{songListDescription,jdbcType=VARCHAR}
+        where song_list_id = #{songListId,jdbcType=INTEGER}
+    </update>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap">
+        select song_list_id,
+               song_list_name,
+               user_id,
+               user_avatar,
+               user_nickname,
+               play_count,
+               comment_count,
+               collection_count,
+               song_list_description,
+               create_date,
+               modify_date,
+               list_img_path
+        from t_song_list
+        where song_list_id = #{songListId,jdbcType=INTEGER}
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        select song_list_id,
+               song_list_name,
+               user_id,
+               user_avatar,
+               user_nickname,
+               play_count,
+               collection_count,
+               song_list_description,
+               create_date,
+               modify_date,
+               list_img_path
+        from t_song_list
+    </select>
+
+    <select id="selectSongListsByUser" resultMap="BaseResultMap">
+        SELECT sl.*, u.user_nickname
+        FROM t_song_list sl,
+             t_user_song_list usl,
+             t_user u
+        WHERE sl.song_list_id = usl.song_list_id
+          AND u.user_id = usl.user_id
+          AND usl.user_id = #{userId}
+        ORDER BY sl.song_list_id ASC
+    </select>
+
+    <select id="selectCollectedSongListsByUser" resultMap="BaseResultMap">
+        SELECT sl.*, u.user_nickname
+        FROM t_song_list sl,
+             t_user_collection_song_list csl,
+             t_user u
+        WHERE sl.song_list_id = csl.song_list_id
+          AND u.user_id = csl.user_id
+          AND u.user_id = #{userId}
+    </select>
+
+    <select id="selectSongListsById" resultMap="BaseResultMap">
+        SELECT sl.*, u.user_nickname
+        FROM t_song_list sl,
+             t_user_song_list usl,
+             t_user u
+        WHERE sl.song_list_id = usl.song_list_id
+          AND u.user_id = usl.user_id
+          AND usl.user_id = #{userId}
+          AND usl.song_list_id = #{songListId}
+    </select>
+
+    <select id="selectCollectedSingleSongListById" resultMap="BaseResultMap">
+        SELECT sl.*, u.user_nickname
+        FROM t_song_list sl,
+             t_user_collection_song_list csl,
+             t_user u
+        WHERE sl.song_list_id = csl.song_list_id
+          AND u.user_id = csl.user_id
+          AND csl.user_id = #{userId}
+          AND csl.song_list_id = #{songListId}
+    </select>
+
+    <select id="selectSongList" resultMap="BaseResultMap">
+        select song_list_id,
+               song_list_name,
+               user_id,
+               user_avatar,
+               user_nickname,
+               play_count,
+               collection_count,
+               song_list_description,
+               create_date,
+               modify_date,
+               list_img_path
+        from t_song_list
+        ORDER BY collection_count DESC
+        LIMIT #{size}
+    </select>
+
+    <select id="selectSongListByPage" resultMap="BaseResultMap">
+        SELECT
+        *
+        FROM
+        t_song_list a
+        LEFT JOIN t_song_list_category b
+        ON a.`song_list_id` = b.`song_list_id`
+        LEFT JOIN t_categories c
+        ON b.`category_id` = c.`category_id`
+            <if test="categoryId != 0 and categoryId != null ">
+               and b.category_id = #{value}
+            </if>
+    </select>
+
+
+    <insert id="insertSongListCates" parameterType="list">
+        insert into t_song_list_category (song_list_id, category_id) values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.songListId},
+            #{item.categoryId}
+            )
+        </foreach>
+    </insert>
+
+    <delete id="deleteSongListCates">
+        delete
+        from t_song_list_category
+        where song_list_id = #{songListId}
+    </delete>
+</mapper>
